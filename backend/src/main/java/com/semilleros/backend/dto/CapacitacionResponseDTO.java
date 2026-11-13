@@ -28,21 +28,59 @@ public class CapacitacionResponseDTO {
     private Long semilleroId;
 
     // Getters and Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public String getNombreCapacitacion() { return nombreCapacitacion; }
-    public void setNombreCapacitacion(String nombreCapacitacion) { this.nombreCapacitacion = nombreCapacitacion; }
-    public LocalDate getFecha() { return fecha; }
-    public void setFecha(LocalDate fecha) { this.fecha = fecha; }
-    public String getObjetivoCapacitacion() { return objetivoCapacitacion; }
-    public void setObjetivoCapacitacion(String objetivoCapacitacion) { this.objetivoCapacitacion = objetivoCapacitacion; }
-    public Double getPorcentajeCumplimiento() { return porcentajeCumplimiento; }
-    public void setPorcentajeCumplimiento(Double porcentajeCumplimiento) { this.porcentajeCumplimiento = porcentajeCumplimiento; }
-    public Integer getCantidadParticipantes() { return cantidadParticipantes; }
-    public void setCantidadParticipantes(Integer cantidadParticipantes) { this.cantidadParticipantes = cantidadParticipantes; }
-    public Long getSemilleroId() { return semilleroId; }
-    public void setSemilleroId(Long semilleroId) { this.semilleroId = semilleroId; }
-}
+    public Long getId() {
+        return id;
+    }
 
-}
+    public void setId(Long id) {
+        this.id = id;
+    }
 
+    public String getNombreCapacitacion() {
+        return nombreCapacitacion;
+    }
+
+    public void setNombreCapacitacion(String nombreCapacitacion) {
+        this.nombreCapacitacion = nombreCapacitacion;
+    }
+
+    public LocalDate getFecha() {
+        return fecha;
+    }
+
+    public void setFecha(LocalDate fecha) {
+        this.fecha = fecha;
+    }
+
+    public String getObjetivoCapacitacion() {
+        return objetivoCapacitacion;
+    }
+
+    public void setObjetivoCapacitacion(String objetivoCapacitacion) {
+        this.objetivoCapacitacion = objetivoCapacitacion;
+    }
+
+    public Double getPorcentajeCumplimiento() {
+        return porcentajeCumplimiento;
+    }
+
+    public void setPorcentajeCumplimiento(Double porcentajeCumplimiento) {
+        this.porcentajeCumplimiento = porcentajeCumplimiento;
+    }
+
+    public Integer getCantidadParticipantes() {
+        return cantidadParticipantes;
+    }
+
+    public void setCantidadParticipantes(Integer cantidadParticipantes) {
+        this.cantidadParticipantes = cantidadParticipantes;
+    }
+
+    public Long getSemilleroId() {
+        return semilleroId;
+    }
+
+    public void setSemilleroId(Long semilleroId) {
+        this.semilleroId = semilleroId;
+    }
+}
