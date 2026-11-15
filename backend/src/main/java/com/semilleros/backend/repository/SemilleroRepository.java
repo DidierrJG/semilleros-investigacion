@@ -13,6 +13,8 @@ public interface SemilleroRepository extends JpaRepository<Semillero, Long> {
 
     boolean existsByDirectorId(Long directorId);
 
+    boolean existsByGrupoInvestigacionId(Long grupoInvestigacionId);
+
     boolean existsByLineasId(Long lineaId);
 }
 

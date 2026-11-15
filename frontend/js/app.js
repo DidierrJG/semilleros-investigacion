@@ -5,6 +5,7 @@ import { API_BASE_URL } from './config.js';
 
 function updateSidebarStatus(state) {
   const semCount = document.getElementById('navCountSemilleros');
+  const grpCount = document.getElementById('navCountGrupos');
   const intCount = document.getElementById('navCountIntegrantes');
   const prodCount = document.getElementById('navCountProductos');
   const actCount = document.getElementById('navCountActividades');
@@ -16,6 +17,7 @@ function updateSidebarStatus(state) {
   const url = document.getElementById('apiStatusUrl');
 
   if (semCount) semCount.textContent = String(state.semilleros.length);
+  if (grpCount) grpCount.textContent = String((state.gruposInvestigacion || []).length);
   if (intCount) intCount.textContent = String(state.integrantes.length);
   if (prodCount) prodCount.textContent = String(state.productos.length);
   if (actCount) actCount.textContent = String(state.actividades.length);
