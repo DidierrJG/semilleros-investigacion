@@ -4,6 +4,7 @@ import { integrantesApi } from '../api/integrantesApi.js';
 import { productosApi } from '../api/productosApi.js';
 import { tiposActividadApi } from '../api/tiposActividadApi.js';
 import { actividadesApi } from '../api/actividadesApi.js';
+import { capacitacionesApi } from '../api/capacitacionesApi.js';
 import { openModal, closeModal } from './modal.js';
 import { showToast } from './toast.js';
 
@@ -750,4 +751,116 @@ export function openTipoActividadFormModal(tipoActividad = null, onSaved = null)
     },
   });
 }
+
+export function openCapacitacionFormModal({ capacitacion = null, defaultSemilleroId = null, lockSemillero = false } = {}, onSaved = null) {
+  const isEdit = Boolean(capacitacion);
+  const selectedSemilleroId = capacitacion?.semilleroId ?? defaultSemilleroId ?? '';
+
+  const semilleroOptions = store.semilleros
+    .map(
+      (s) => `
+      <option value="${s.id}" ${Number(selectedSemilleroId) === Number(s.id) ? 'selected' : ''}>
+        ${escapeHtml(s.sigla)} — ${escapeHtml(s.nombre)}
+      </option>`
+    )
+    .join('');
+
+  openModal({
+    title: isEdit ? `Editar Capacitación · ${capacitacion.nombreCapacitacion}` : 'Registrar Nueva Capacitación',
+    bodyHtml: `
+      <form id="capacitacionForm" class="form-grid">
+        <div class="form-field form-field--full">
+          <label class="form-label" for="capSemillero">Semillero Responsable *</label>
+          <select class="form-control" id="capSemillero" name="semilleroId" required ${lockSemillero ? 'disabled' : ''}>
+            <option value="">Seleccione un semillero...</option>
+            ${semilleroOptions}
+          </select>
+          ${lockSemillero ? `<input type="hidden" name="semilleroId" value="${escapeHtml(selectedSemilleroId)}" />` : ''}
+        </div>
+
+        <div class="form-field form-field--full">
+          <label class="form-label" for="capNombre">Nombre de la Capacitación *</label>
+          <input class="form-control" id="capNombre" name="nombreCapacitacion" required maxlength="200"
+            value="${escapeHtml(capacitacion?.nombreCapacitacion || '')}"
+            placeholder="Ej. Taller de Redes Neuronales y Deep Learning con PyTorch" />
+        </div>
+
+        <div class="form-field">
+          <label class="form-label" for="capFecha">Fecha de Realización *</label>
+          <input type="date" class="form-control" id="capFecha" name="fecha" required
+            value="${escapeHtml(capacitacion?.fecha || new Date().toISOString().slice(0, 10))}" />
+        </div>
+
+        <div class="form-field">
+          <label class="form-label" for="capParticipantes">Cantidad de Participantes *</label>
+          <input type="number" class="form-control" id="capParticipantes" name="cantidadParticipantes"
+            required min="0" step="1"
+            value="${capacitacion?.cantidadParticipantes ?? 25}" placeholder="Ej. 25" />
+        </div>
+
+        <div class="form-field form-field--full">
+          <label class="form-label" for="capCumplimiento">% de Cumplimiento (0 - 100%) *</label>
+          <input type="number" class="form-control" id="capCumplimiento" name="porcentajeCumplimiento"
+            required min="0" max="100" step="0.1"
+            value="${capacitacion?.porcentajeCumplimiento ?? 100}" placeholder="Ej. 100" />
+        </div>
+
+        <div class="form-field form-field--full">
+          <label class="form-label" for="capObjetivo">Objetivo de la Capacitación *</label>
+          <textarea class="form-control" id="capObjetivo" name="objetivoCapacitacion" rows="3" required
+            placeholder="Describa el objetivo principal y los aprendizajes esperados de la capacitación...">${escapeHtml(capacitacion?.objetivoCapacitacion || '')}</textarea>
+        </div>
+
+        <div class="form-field form-field--full" id="capFormError"></div>
+      </form>
+    `,
+    footerHtml: `
+      <button type="button" class="btn btn--secondary" data-modal-close>Cancelar</button>
+      <button type="submit" form="capacitacionForm" class="btn btn--primary" id="saveCapacitacionBtn">
+        ${isEdit ? 'Actualizar capacitación' : 'Guardar capacitación'}
+      </button>
+    `,
+    onMount: (backdrop) => {
+      const form = backdrop.querySelector('#capacitacionForm');
+      const errorBox = backdrop.querySelector('#capFormError');
+      const saveBtn = backdrop.querySelector('#saveCapacitacionBtn');
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        errorBox.innerHTML = '';
+
+        const formData = new FormData(form);
+        const payload = {
+          semilleroId: Number(formData.get('semilleroId')),
+          nombreCapacitacion: String(formData.get('nombreCapacitacion') || '').trim(),
+          fecha: String(formData.get('fecha') || '').trim(),
+          objetivoCapacitacion: String(formData.get('objetivoCapacitacion') || '').trim(),
+          porcentajeCumplimiento: Number(formData.get('porcentajeCumplimiento')),
+          cantidadParticipantes: Number(formData.get('cantidadParticipantes')),
+        };
+
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Guardando...';
+
+        try {
+          if (isEdit) {
+            await capacitacionesApi.update(capacitacion.id, payload);
+            showToast('Capacitación actualizada correctamente', 'success');
+          } else {
+            await capacitacionesApi.create(payload);
+            showToast('Capacitación registrada correctamente', 'success');
+          }
+          await loadAllData();
+          closeModal();
+          if (onSaved) onSaved();
+        } catch (err) {
+          errorBox.innerHTML = `<div class="form-error">${escapeHtml(err.message)}</div>`;
+          saveBtn.disabled = false;
+          saveBtn.textContent = isEdit ? 'Actualizar capacitación' : 'Guardar capacitación';
+        }
+      });
+    },
+  });
+}
+
 

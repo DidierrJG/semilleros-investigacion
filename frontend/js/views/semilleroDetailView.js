@@ -5,11 +5,13 @@ import {
   getIntegrantesBySemillero,
   getProductosBySemillero,
   getActividadesBySemillero,
+  getCapacitacionesBySemillero,
 } from '../state/store.js';
 import { semillerosApi } from '../api/semillerosApi.js';
 import { integrantesApi } from '../api/integrantesApi.js';
 import { productosApi } from '../api/productosApi.js';
 import { actividadesApi } from '../api/actividadesApi.js';
+import { capacitacionesApi } from '../api/capacitacionesApi.js';
 import { confirmDialog } from '../ui/modal.js';
 import { showToast } from '../ui/toast.js';
 import {
@@ -18,6 +20,7 @@ import {
   openIntegranteFormModal,
   openProductoFormModal,
   openActividadFormModal,
+  openCapacitacionFormModal,
   openSemilleroFormModal,
   renderEmptyState,
 } from '../ui/components.js';
@@ -37,6 +40,7 @@ export function renderSemilleroDetailView(container, semilleroId) {
   const integrantes = getIntegrantesBySemillero(semillero.id);
   const productos = getProductosBySemillero(semillero.id);
   const actividades = getActividadesBySemillero(semillero.id);
+  const capacitaciones = getCapacitacionesBySemillero(semillero.id);
   const associatedIds = new Set((semillero.lineas || []).map((l) => Number(l.id)));
   const availableLineas = store.lineas.filter((l) => !associatedIds.has(Number(l.id)));
 
@@ -212,6 +216,66 @@ export function renderSemilleroDetailView(container, semilleroId) {
         'Registra las actividades de investigación desarrolladas por este semillero.'
       );
 
+  const capacitacionesRowsHtml = capacitaciones.length
+    ? `
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Capacitación</th>
+              <th>Fecha</th>
+              <th>Objetivo</th>
+              <th style="width: 140px;">Participantes</th>
+              <th style="width: 200px;">% Cumplimiento</th>
+              <th style="text-align: right;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${capacitaciones
+              .map(
+                (c) => `
+              <tr>
+                <td>
+                  <strong>${escapeHtml(c.nombreCapacitacion)}</strong>
+                </td>
+                <td>
+                  <span class="text-sm text-muted">${escapeHtml(c.fecha || '')}</span>
+                </td>
+                <td>
+                  <div style="max-width: 250px; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4;">
+                    ${escapeHtml(c.objetivoCapacitacion || '')}
+                  </div>
+                </td>
+                <td>
+                  <span class="badge badge--member">👥 ${c.cantidadParticipantes} pers.</span>
+                </td>
+                <td>
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="flex: 1; height: 8px; background: var(--border-color); border-radius: 4px; overflow: hidden;">
+                      <div style="width: ${Math.min(100, Math.max(0, c.porcentajeCumplimiento))}%; height: 100%; background: ${c.porcentajeCumplimiento === 100 ? '#16a34a' : 'var(--ufps-red-600)'};"></div>
+                    </div>
+                    <strong style="min-width: 44px; font-size: 0.88rem; color: ${c.porcentajeCumplimiento === 100 ? '#16a34a' : 'var(--text-primary)'};">
+                      ${c.porcentajeCumplimiento}%
+                    </strong>
+                  </div>
+                </td>
+                <td style="text-align: right;">
+                  <div class="card-actions" style="justify-content: flex-end;">
+                    <button type="button" class="btn btn--secondary btn--sm" data-edit-capacitacion="${c.id}">Editar</button>
+                    <button type="button" class="btn btn--danger btn--sm" data-delete-capacitacion="${c.id}">Eliminar</button>
+                  </div>
+                </td>
+              </tr>`
+              )
+              .join('')}
+          </tbody>
+        </table>
+      </div>`
+    : renderEmptyState(
+        'Sin capacitaciones registradas',
+        'Registra los talleres formativos y capacitaciones dictadas por este semillero.'
+      );
+
   container.innerHTML = `
     <section>
       <div class="hero-banner">
@@ -281,6 +345,14 @@ export function renderSemilleroDetailView(container, semilleroId) {
             <button type="button" class="btn btn--primary btn--sm" id="addActividadTableBtn">+ Nueva actividad</button>
           </div>
           ${actividadesRowsHtml}
+        </div>
+
+        <div class="panel panel--span-12" style="padding: 0; overflow: hidden;">
+          <div class="panel__header" style="padding: 18px 20px 14px; margin-bottom: 0; border-bottom: 1px solid var(--border-color);">
+            <h2 class="panel__title">4. Capacitaciones Realizadas (${capacitaciones.length})</h2>
+            <button type="button" class="btn btn--primary btn--sm" id="addCapacitacionTableBtn">+ Nueva capacitación</button>
+          </div>
+          ${capacitacionesRowsHtml}
         </div>
       </div>
     </section>
@@ -446,6 +518,51 @@ export function renderSemilleroDetailView(container, semilleroId) {
             await actividadesApi.remove(actividad.id);
             await loadAllData();
             showToast('Actividad eliminada', 'success');
+            renderSemilleroDetailView(container, semillero.id);
+          } catch (err) {
+            showToast(err.message, 'error');
+            throw err;
+          }
+        },
+      });
+    });
+  });
+
+  // Agregar capacitación preseleccionando este semillero
+  container.querySelector('#addCapacitacionTableBtn')?.addEventListener('click', () => {
+    openCapacitacionFormModal(
+      { defaultSemilleroId: semillero.id, lockSemillero: true },
+      () => renderSemilleroDetailView(container, semillero.id)
+    );
+  });
+
+  // Editar capacitación
+  container.querySelectorAll('[data-edit-capacitacion]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const cap = store.capacitaciones.find((c) => Number(c.id) === Number(btn.dataset.editCapacitacion));
+      if (cap) {
+        openCapacitacionFormModal(
+          { capacitacion: cap, lockSemillero: true },
+          () => renderSemilleroDetailView(container, semillero.id)
+        );
+      }
+    });
+  });
+
+  // Eliminar capacitación
+  container.querySelectorAll('[data-delete-capacitacion]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const cap = store.capacitaciones.find((c) => Number(c.id) === Number(btn.dataset.deleteCapacitacion));
+      if (!cap) return;
+
+      confirmDialog({
+        title: 'Eliminar capacitación',
+        message: `¿Deseas eliminar la capacitación "${cap.nombreCapacitacion}" del semillero ${semillero.sigla}?`,
+        onConfirm: async () => {
+          try {
+            await capacitacionesApi.remove(cap.id);
+            await loadAllData();
+            showToast('Capacitación eliminada', 'success');
             renderSemilleroDetailView(container, semillero.id);
           } catch (err) {
             showToast(err.message, 'error');

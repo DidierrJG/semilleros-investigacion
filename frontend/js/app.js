@@ -8,6 +8,7 @@ function updateSidebarStatus(state) {
   const intCount = document.getElementById('navCountIntegrantes');
   const prodCount = document.getElementById('navCountProductos');
   const actCount = document.getElementById('navCountActividades');
+  const capCount = document.getElementById('navCountCapacitaciones');
   const linCount = document.getElementById('navCountLineas');
   const tipoActCount = document.getElementById('navCountTiposActividad');
   const dirCount = document.getElementById('navCountDirectores');
@@ -19,6 +20,7 @@ function updateSidebarStatus(state) {
   if (intCount) intCount.textContent = String(state.integrantes.length);
   if (prodCount) prodCount.textContent = String(state.productos.length);
   if (actCount) actCount.textContent = String(state.actividades.length);
+  if (capCount) capCount.textContent = String(state.capacitaciones.length);
   if (linCount) linCount.textContent = String(state.lineas.length);
   if (tipoActCount) tipoActCount.textContent = String(state.tiposActividad.length);
   if (dirCount) dirCount.textContent = String(state.directores.length);

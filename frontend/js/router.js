@@ -5,6 +5,7 @@ import { renderSemilleroDetailView } from './views/semilleroDetailView.js';
 import { renderIntegrantesView } from './views/integrantesView.js';
 import { renderProductosView } from './views/productosView.js';
 import { renderActividadesView } from './views/actividadesView.js';
+import { renderCapacitacionesView } from './views/capacitacionesView.js';
 import { renderDirectoresView } from './views/directoresView.js';
 import { renderLineasView } from './views/lineasView.js';
 import { renderTiposActividadView } from './views/tiposActividadView.js';
@@ -83,6 +84,13 @@ export function renderCurrentRoute() {
     updateNavActive('actividades');
     updateBreadcrumb([{ label: 'Otras Actividades de Investigación' }]);
     renderActividadesView(container);
+    return;
+  }
+
+  if (section === 'capacitaciones') {
+    updateNavActive('capacitaciones');
+    updateBreadcrumb([{ label: 'Capacitaciones de Investigación' }]);
+    renderCapacitacionesView(container);
     return;
   }
 

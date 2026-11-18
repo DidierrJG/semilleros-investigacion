@@ -2,20 +2,20 @@ package com.semilleros.backend.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
 import java.time.LocalDate;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import com.semilleros.backend.entity.Semillero;
 
 @Entity
 @Table(name = "capacitaciones")
@@ -29,6 +29,10 @@ public class Capacitacion {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "semillero_id", nullable = false)
+    private Semillero semillero;
 
     @Column(name = "nombre_capacitacion", nullable = false, length = 200)
     private String nombreCapacitacion;
@@ -44,9 +48,4 @@ public class Capacitacion {
 
     @Column(name = "cantidad_participantes", nullable = false)
     private Integer cantidadParticipantes;
-
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "semillero_id", nullable = false)
-    private Semillero semillero;
 }
-
