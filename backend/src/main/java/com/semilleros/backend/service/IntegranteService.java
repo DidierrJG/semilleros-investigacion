@@ -3,6 +3,7 @@ package com.semilleros.backend.service;
 import com.semilleros.backend.dto.IntegranteRequestDTO;
 import com.semilleros.backend.dto.IntegranteResponseDTO;
 import com.semilleros.backend.entity.Integrante;
+import com.semilleros.backend.entity.ProgramaAcademico;
 import com.semilleros.backend.entity.Semillero;
 import com.semilleros.backend.exception.BusinessException;
 import com.semilleros.backend.exception.ResourceNotFoundException;
@@ -21,6 +22,7 @@ public class IntegranteService {
     private final IntegranteRepository integranteRepository;
     private final ProductoRepository productoRepository;
     private final SemilleroService semilleroService;
+    private final ProgramaAcademicoService programaService;
 
     @Transactional(readOnly = true)
     public List<IntegranteResponseDTO> findAll() {
@@ -47,6 +49,7 @@ public class IntegranteService {
     @Transactional
     public IntegranteResponseDTO create(IntegranteRequestDTO request) {
         Semillero semillero = semilleroService.findEntityById(request.getSemilleroId());
+        ProgramaAcademico programa = programaService.findEntityById(request.getProgramaId());
         String codigo = request.getCodigo().trim();
 
         if (integranteRepository.existsBySemilleroIdAndCodigoIgnoreCase(semillero.getId(), codigo)) {
@@ -57,8 +60,14 @@ public class IntegranteService {
                 .semillero(semillero)
                 .codigo(codigo)
                 .nombre(request.getNombre().trim())
-                .programa(request.getPrograma().trim())
+                .programa(programa)
                 .esLider(request.getEsLider())
+                .identificacion(request.getIdentificacion().trim())
+                .semestreActual(request.getSemestreActual())
+                .edad(request.getEdad())
+                .direccion(request.getDireccion().trim())
+                .email(request.getEmail().trim().toLowerCase())
+                .celular(request.getCelular().trim())
                 .build();
 
         return toResponseDTO(integranteRepository.save(integrante));
@@ -68,6 +77,7 @@ public class IntegranteService {
     public IntegranteResponseDTO update(Long id, IntegranteRequestDTO request) {
         Integrante integrante = findEntityById(id);
         Semillero semillero = semilleroService.findEntityById(request.getSemilleroId());
+        ProgramaAcademico programa = programaService.findEntityById(request.getProgramaId());
         String codigo = request.getCodigo().trim();
 
         if (integranteRepository.existsBySemilleroIdAndCodigoIgnoreCaseAndIdNot(semillero.getId(), codigo, id)) {
@@ -77,8 +87,14 @@ public class IntegranteService {
         integrante.setSemillero(semillero);
         integrante.setCodigo(codigo);
         integrante.setNombre(request.getNombre().trim());
-        integrante.setPrograma(request.getPrograma().trim());
+        integrante.setPrograma(programa);
         integrante.setEsLider(request.getEsLider());
+        integrante.setIdentificacion(request.getIdentificacion().trim());
+        integrante.setSemestreActual(request.getSemestreActual());
+        integrante.setEdad(request.getEdad());
+        integrante.setDireccion(request.getDireccion().trim());
+        integrante.setEmail(request.getEmail().trim().toLowerCase());
+        integrante.setCelular(request.getCelular().trim());
 
         return toResponseDTO(integranteRepository.save(integrante));
     }
@@ -99,6 +115,7 @@ public class IntegranteService {
 
     public IntegranteResponseDTO toResponseDTO(Integrante integrante) {
         Semillero semillero = integrante.getSemillero();
+        ProgramaAcademico programa = integrante.getPrograma();
         return IntegranteResponseDTO.builder()
                 .id(integrante.getId())
                 .semilleroId(semillero.getId())
@@ -106,8 +123,15 @@ public class IntegranteService {
                 .semilleroSigla(semillero.getSigla())
                 .codigo(integrante.getCodigo())
                 .nombre(integrante.getNombre())
-                .programa(integrante.getPrograma())
+                .programaId(programa.getId())
+                .programaNombre(programa.getNombre())
                 .esLider(integrante.getEsLider())
+                .identificacion(integrante.getIdentificacion())
+                .semestreActual(integrante.getSemestreActual())
+                .edad(integrante.getEdad())
+                .direccion(integrante.getDireccion())
+                .email(integrante.getEmail())
+                .celular(integrante.getCelular())
                 .build();
     }
 }
