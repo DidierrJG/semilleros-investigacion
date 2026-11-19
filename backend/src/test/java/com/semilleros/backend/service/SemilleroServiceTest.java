@@ -14,6 +14,7 @@ import com.semilleros.backend.repository.ActividadRepository;
 import com.semilleros.backend.repository.IntegranteRepository;
 import com.semilleros.backend.repository.ProductoRepository;
 import com.semilleros.backend.repository.SemilleroRepository;
+import com.semilleros.backend.storage.FileStorageService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -51,6 +52,9 @@ class SemilleroServiceTest {
 
     @Mock
     private GrupoInvestigacionService grupoInvestigacionService;
+
+    @Mock
+    private FileStorageService fileStorageService;
 
     @InjectMocks
     private SemilleroService semilleroService;

@@ -36,6 +36,9 @@ public class SemilleroResponseDTO {
     @Schema(description = "Objetivo general del semillero")
     private String objetivoGeneral;
 
+    @Schema(description = "URL o ruta de acceso al logo del semillero", example = "/api/semilleros/1/logo")
+    private String logoUrl;
+
     @Schema(description = "Información del director responsable")
     private DirectorResponseDTO director;
 

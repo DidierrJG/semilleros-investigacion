@@ -78,7 +78,12 @@ export function renderSemillerosView(container) {
           return `
             <article class="semillero-card" data-semillero-id="${s.id}">
               <div class="semillero-card__header">
-                <div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  ${
+                    s.logoUrl
+                      ? `<img src="${escapeHtml(s.logoUrl)}" alt="${escapeHtml(s.sigla)}" style="width: 36px; height: 36px; object-fit: contain; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: #fff; padding: 2px;" />`
+                      : ''
+                  }
                   <span class="sigla-badge">${escapeHtml(s.sigla)}</span>
                 </div>
                 <div class="card-actions">
@@ -150,6 +155,11 @@ export function renderSemillerosView(container) {
                 <tr>
                   <td>
                     <div style="display: flex; align-items: center; gap: 10px;">
+                      ${
+                        s.logoUrl
+                          ? `<img src="${escapeHtml(s.logoUrl)}" alt="${escapeHtml(s.sigla)}" style="width: 34px; height: 34px; object-fit: contain; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: #fff; padding: 2px; flex-shrink: 0;" />`
+                          : ''
+                      }
                       <span class="sigla-badge">${escapeHtml(s.sigla)}</span>
                       <div>
                         <strong style="cursor: pointer;" data-action="open" data-id="${s.id}">

@@ -109,6 +109,23 @@ export function openSemilleroFormModal(semillero = null, onSaved = null) {
           </select>
         </div>
         <div class="form-field form-field--full">
+          <label class="form-label" for="semLogoFile">Logo del semillero (opcional)</label>
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <div id="semLogoPreviewContainer" style="width: 64px; height: 64px; border-radius: var(--radius-sm); border: 1px dashed var(--border-strong); display: flex; align-items: center; justify-content: center; overflow: hidden; background: var(--bg-page);">
+              ${
+                semillero?.logoUrl
+                  ? `<img src="${escapeHtml(semillero.logoUrl)}" id="semLogoImgPreview" style="width: 100%; height: 100%; object-fit: contain;" />`
+                  : `<span id="semLogoTextPreview" style="font-size: 0.75rem; color: var(--text-muted); text-align: center;">Sin logo</span>`
+              }
+            </div>
+            <div style="flex: 1;">
+              <input class="form-control" type="file" id="semLogoFile" name="logoFile" accept="image/png, image/jpeg, image/webp, image/svg+xml" />
+              <div class="text-xs text-muted" style="margin-top: 4px;">Formatos aceptados: PNG, JPG, WEBP, SVG (máx. 10MB)</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-field form-field--full">
           <label class="form-label" for="semMision">Misión</label>
           <textarea class="form-control" id="semMision" name="mision" placeholder="Propósito formativo del semillero...">${escapeHtml(semillero?.mision || '')}</textarea>
         </div>
@@ -137,6 +154,19 @@ export function openSemilleroFormModal(semillero = null, onSaved = null) {
       const form = backdrop.querySelector('#semilleroForm');
       const errorBox = backdrop.querySelector('#semFormError');
       const saveBtn = backdrop.querySelector('#saveSemilleroBtn');
+      const fileInput = backdrop.querySelector('#semLogoFile');
+      const previewContainer = backdrop.querySelector('#semLogoPreviewContainer');
+
+      fileInput?.addEventListener('change', () => {
+        const file = fileInput.files?.[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            previewContainer.innerHTML = `<img src="${ev.target.result}" style="width: 100%; height: 100%; object-fit: contain;" />`;
+          };
+          reader.readAsDataURL(file);
+        }
+      });
 
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -159,13 +189,20 @@ export function openSemilleroFormModal(semillero = null, onSaved = null) {
         saveBtn.textContent = 'Guardando...';
 
         try {
+          let savedSemillero;
           if (isEdit) {
-            await semillerosApi.update(semillero.id, payload);
-            showToast('Semillero actualizado correctamente', 'success');
+            savedSemillero = await semillerosApi.update(semillero.id, payload);
           } else {
-            await semillerosApi.create(payload);
-            showToast('Semillero creado correctamente', 'success');
+            savedSemillero = await semillerosApi.create(payload);
           }
+
+          const file = fileInput?.files?.[0];
+          if (file) {
+            saveBtn.textContent = 'Subiendo logo...';
+            await semillerosApi.uploadLogo(savedSemillero.id, file);
+          }
+
+          showToast(isEdit ? 'Semillero actualizado correctamente' : 'Semillero creado correctamente', 'success');
           await loadAllData();
           closeModal();
           if (onSaved) onSaved();
@@ -492,6 +529,13 @@ export function openSemilleroPreviewModal(semillero, integrante = null) {
   openModal({
     title: `Semillero ${semillero.sigla}`,
     bodyHtml: `
+      ${
+        semillero.logoUrl
+          ? `<div style="text-align: center; margin-bottom: 16px;">
+              <img src="${escapeHtml(semillero.logoUrl)}" alt="${escapeHtml(semillero.sigla)}" style="max-height: 75px; max-width: 160px; object-fit: contain; border-radius: var(--radius-sm); border: 1px solid var(--border-color); padding: 4px; background: #fff; box-shadow: var(--shadow-xs);" />
+            </div>`
+          : ''
+      }
       ${
         integrante
           ? `<p class="text-sm text-muted" style="margin-bottom: 12px;">

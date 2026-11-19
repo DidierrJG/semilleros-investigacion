@@ -45,6 +45,9 @@ public class SemilleroRequestDTO {
     @Schema(description = "Identificador del director responsable", example = "1")
     private Long directorId;
 
+    @Schema(description = "URL o ruta de acceso al logo del semillero", example = "/api/semilleros/1/logo")
+    private String logoUrl;
+
     @Schema(description = "IDs de las líneas de investigación asociadas al semillero", example = "[1, 2]")
     private Set<Long> lineaIds;
 }
