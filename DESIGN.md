@@ -267,3 +267,4 @@ const toolbarHtml = createToolbar({
 >   - Rojo UFPS (`#c4161c` / `#aa1916`) para acciones principales, acentos de tarjeta y navegación activa.
 >   - Verde (`#16a34a`) reservado para 100% de cumplimiento o estado activo exitoso.
 >   - Gris azulado (`#475569` / `#0f172a`) para jerarquía de textos legibles.
+
