@@ -7,6 +7,14 @@ import { actividadesApi } from '../api/actividadesApi.js';
 import { capacitacionesApi } from '../api/capacitacionesApi.js';
 import { openModal, closeModal } from './modal.js';
 import { showToast } from './toast.js';
+export {
+  createPageHeader,
+  createKpiCard,
+  createKpiGrid,
+  createToolbar,
+  createViewToggle,
+  createProgressBar,
+} from './designModel.js';
 
 export function escapeHtml(value) {
   if (value === null || value === undefined) return '';
