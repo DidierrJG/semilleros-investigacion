@@ -1,10 +1,12 @@
 package com.semilleros.backend.service;
 
 import com.semilleros.backend.dto.DirectorResponseDTO;
+import com.semilleros.backend.dto.GrupoInvestigacionResponseDTO;
 import com.semilleros.backend.dto.LineaResponseDTO;
 import com.semilleros.backend.dto.SemilleroRequestDTO;
 import com.semilleros.backend.dto.SemilleroResponseDTO;
 import com.semilleros.backend.entity.Director;
+import com.semilleros.backend.entity.GrupoInvestigacion;
 import com.semilleros.backend.entity.Linea;
 import com.semilleros.backend.entity.Semillero;
 import com.semilleros.backend.exception.BusinessException;
@@ -47,16 +49,18 @@ class SemilleroServiceTest {
     @Mock
     private LineaService lineaService;
 
+    @Mock
+    private GrupoInvestigacionService grupoInvestigacionService;
+
     @InjectMocks
     private SemilleroService semilleroService;
 
     @Test
-
     void create_shouldSaveAndReturnSemilleroWithLineas_whenValid() {
         SemilleroRequestDTO request = SemilleroRequestDTO.builder()
                 .nombre("Semillero IA")
                 .sigla("SIA")
-                .grupoInvestigacion("GSI")
+                .grupoInvestigacionId(2L)
                 .mision("Mision")
                 .vision("Vision")
                 .objetivoGeneral("Objetivo")
@@ -66,6 +70,8 @@ class SemilleroServiceTest {
 
         Director director = Director.builder().id(1L).nombre("Ana").correo("ana@uni.edu").build();
         DirectorResponseDTO directorDTO = new DirectorResponseDTO(1L, "Ana", "ana@uni.edu");
+        GrupoInvestigacion grupo = GrupoInvestigacion.builder().id(2L).nombre("GSI").sigla("GSI").build();
+        GrupoInvestigacionResponseDTO grupoDTO = GrupoInvestigacionResponseDTO.builder().id(2L).nombre("GSI").sigla("GSI").build();
         Linea linea = Linea.builder().id(5L).nombre("Machine Learning").build();
         LineaResponseDTO lineaDTO = new LineaResponseDTO(5L, "Machine Learning");
 
@@ -73,7 +79,7 @@ class SemilleroServiceTest {
                 .id(10L)
                 .nombre("Semillero IA")
                 .sigla("SIA")
-                .grupoInvestigacion("GSI")
+                .grupoInvestigacion(grupo)
                 .mision("Mision")
                 .vision("Vision")
                 .objetivoGeneral("Objetivo")
@@ -83,9 +89,11 @@ class SemilleroServiceTest {
 
         when(semilleroRepository.existsBySiglaIgnoreCase("SIA")).thenReturn(false);
         when(directorService.findEntityById(1L)).thenReturn(director);
+        when(grupoInvestigacionService.findEntityById(2L)).thenReturn(grupo);
         when(lineaService.findEntityById(5L)).thenReturn(linea);
         when(semilleroRepository.save(any(Semillero.class))).thenReturn(saved);
         when(directorService.toResponseDTO(director)).thenReturn(directorDTO);
+        when(grupoInvestigacionService.toResponseDTO(grupo)).thenReturn(grupoDTO);
         when(lineaService.toResponseDTO(linea)).thenReturn(lineaDTO);
 
         SemilleroResponseDTO result = semilleroService.create(request);
@@ -93,6 +101,7 @@ class SemilleroServiceTest {
         assertEquals(10L, result.getId());
         assertEquals("SIA", result.getSigla());
         assertEquals(1L, result.getDirector().getId());
+        assertEquals(2L, result.getGrupoInvestigacion().getId());
         assertEquals(1, result.getLineas().size());
         assertEquals(5L, result.getLineas().get(0).getId());
     }
@@ -102,7 +111,7 @@ class SemilleroServiceTest {
         SemilleroRequestDTO request = SemilleroRequestDTO.builder()
                 .nombre("Semillero IA")
                 .sigla("SIA")
-                .grupoInvestigacion("GSI")
+                .grupoInvestigacionId(2L)
                 .directorId(1L)
                 .build();
 

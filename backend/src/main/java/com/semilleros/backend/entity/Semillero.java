@@ -39,8 +39,9 @@ public class Semillero {
     @Column(nullable = false, unique = true, length = 30)
     private String sigla;
 
-    @Column(name = "grupo_investigacion", nullable = false, length = 180)
-    private String grupoInvestigacion;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "grupo_investigacion_id", nullable = false)
+    private GrupoInvestigacion grupoInvestigacion;
 
     @Column(columnDefinition = "TEXT")
     private String mision;

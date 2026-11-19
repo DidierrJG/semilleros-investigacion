@@ -12,12 +12,13 @@ let filters = {
   query: '',
   lineaId: '',
   directorId: '',
+  grupoId: '',
 };
 
 let viewMode = 'table'; // 'table' | 'cards'
 
 export function renderSemillerosView(container) {
-  const { semilleros, integrantes, lineas, directores } = store;
+  const { semilleros, integrantes, lineas, directores, gruposInvestigacion } = store;
 
   const filtered = semilleros.filter((s) => {
     const q = filters.query.trim().toLowerCase();
@@ -25,7 +26,8 @@ export function renderSemillerosView(container) {
       !q ||
       s.nombre.toLowerCase().includes(q) ||
       s.sigla.toLowerCase().includes(q) ||
-      s.grupoInvestigacion.toLowerCase().includes(q) ||
+      (s.grupoInvestigacion?.nombre || '').toLowerCase().includes(q) ||
+      (s.grupoInvestigacion?.sigla || '').toLowerCase().includes(q) ||
       (s.director?.nombre || '').toLowerCase().includes(q);
 
     const matchesLinea =
@@ -36,7 +38,11 @@ export function renderSemillerosView(container) {
       !filters.directorId ||
       Number(s.director?.id) === Number(filters.directorId);
 
-    return matchesQuery && matchesLinea && matchesDirector;
+    const matchesGrupo =
+      !filters.grupoId ||
+      Number(s.grupoInvestigacion?.id) === Number(filters.grupoId);
+
+    return matchesQuery && matchesLinea && matchesDirector && matchesGrupo;
   });
 
   const lineaOptions = lineas
@@ -50,6 +56,13 @@ export function renderSemillerosView(container) {
     .map(
       (d) =>
         `<option value="${d.id}" ${Number(filters.directorId) === Number(d.id) ? 'selected' : ''}>${escapeHtml(d.nombre)}</option>`
+    )
+    .join('');
+
+  const grupoOptions = (gruposInvestigacion || [])
+    .map(
+      (g) =>
+        `<option value="${g.id}" ${Number(filters.grupoId) === Number(g.id) ? 'selected' : ''}>${escapeHtml(g.sigla)} - ${escapeHtml(g.nombre)}</option>`
     )
     .join('');
 
@@ -82,7 +95,9 @@ export function renderSemillerosView(container) {
                 <h2 class="semillero-card__title" data-action="open" data-id="${s.id}">
                   ${escapeHtml(s.nombre)}
                 </h2>
-                <p class="semillero-card__group">${escapeHtml(s.grupoInvestigacion)}</p>
+                <p class="semillero-card__group">
+                  ${s.grupoInvestigacion?.sigla ? `<span class="badge badge--neutral">${escapeHtml(s.grupoInvestigacion.sigla)}</span> ` : ''}${escapeHtml(s.grupoInvestigacion?.nombre || 'Grupo no asignado')}
+                </p>
               </div>
 
               <div class="semillero-card__meta">
@@ -140,7 +155,9 @@ export function renderSemillerosView(container) {
                         <strong style="cursor: pointer;" data-action="open" data-id="${s.id}">
                           ${escapeHtml(s.nombre)}
                         </strong>
-                        <div class="text-sm text-muted">${escapeHtml(s.grupoInvestigacion)}</div>
+                        <div class="text-sm text-muted">
+                          ${escapeHtml(s.grupoInvestigacion?.sigla ? `${s.grupoInvestigacion.sigla} · ${s.grupoInvestigacion.nombre}` : (s.grupoInvestigacion?.nombre || ''))}
+                        </div>
                       </div>
                     </div>
                   </td>
@@ -237,6 +254,10 @@ export function renderSemillerosView(container) {
           <option value="">Todos los directores</option>
           ${directorOptions}
         </select>
+        <select class="filter-select" id="semGrupoFilter" aria-label="Filtrar por grupo de investigación">
+          <option value="">Todos los grupos</option>
+          ${grupoOptions}
+        </select>
         <div class="view-toggle" role="group" aria-label="Modo de visualización">
           <button type="button" class="view-toggle__btn ${viewMode === 'cards' ? 'is-active' : ''}" data-view-mode="cards">Tarjetas</button>
           <button type="button" class="view-toggle__btn ${viewMode === 'table' ? 'is-active' : ''}" data-view-mode="table">Tabla</button>
@@ -274,6 +295,11 @@ export function renderSemillerosView(container) {
 
   container.querySelector('#semDirectorFilter')?.addEventListener('change', (e) => {
     filters.directorId = e.target.value;
+    renderSemillerosView(container);
+  });
+
+  container.querySelector('#semGrupoFilter')?.addEventListener('change', (e) => {
+    filters.grupoId = e.target.value;
     renderSemillerosView(container);
   });
 
