@@ -7,6 +7,7 @@ import com.semilleros.backend.entity.ProgramaAcademico;
 import com.semilleros.backend.entity.Semillero;
 import com.semilleros.backend.exception.BusinessException;
 import com.semilleros.backend.repository.IntegranteRepository;
+import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -43,7 +44,7 @@ class IntegranteServiceTest {
                 .esLider(true)
                 .identificacion("1020304050")
                 .semestreActual(4)
-                .edad(20)
+                .fechaNacimiento(LocalDate.of(2003, 5, 14))
                 .direccion("Calle 123 # 45-67, Bogotá")
                 .email("carlos.gomez@universidad.edu.co")
                 .celular("3001234567")
@@ -60,7 +61,7 @@ class IntegranteServiceTest {
                 .esLider(true)
                 .identificacion("1020304050")
                 .semestreActual(4)
-                .edad(20)
+                .fechaNacimiento(LocalDate.of(2003, 5, 14))
                 .direccion("Calle 123 # 45-67, Bogotá")
                 .email("carlos.gomez@universidad.edu.co")
                 .celular("3001234567")
@@ -91,7 +92,7 @@ class IntegranteServiceTest {
                 .esLider(false)
                 .identificacion("1020304050")
                 .semestreActual(4)
-                .edad(20)
+                .fechaNacimiento(LocalDate.of(2003, 5, 14))
                 .direccion("Calle 123 # 45-67, Bogotá")
                 .email("carlos.gomez@universidad.edu.co")
                 .celular("3001234567")

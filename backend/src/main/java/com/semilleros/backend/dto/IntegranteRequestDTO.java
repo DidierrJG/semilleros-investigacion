@@ -6,8 +6,10 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -54,11 +56,10 @@ public class IntegranteRequestDTO {
     @Schema(description = "Semestre actual cursado", example = "4")
     private Integer semestreActual;
 
-    @NotNull(message = "La edad es obligatoria")
-    @Min(value = 14, message = "La edad mínima es 14 años")
-    @Max(value = 99, message = "La edad no puede superar 99 años")
-    @Schema(description = "Edad del integrante", example = "20")
-    private Integer edad;
+    @NotNull(message = "La fecha de nacimiento es obligatoria")
+    @Past(message = "La fecha de nacimiento debe ser una fecha pasada")
+    @Schema(description = "Fecha de nacimiento del integrante", example = "2003-05-14")
+    private LocalDate fechaNacimiento;
 
     @NotBlank(message = "La dirección es obligatoria")
     @Size(max = 255, message = "La dirección no puede superar los 255 caracteres")

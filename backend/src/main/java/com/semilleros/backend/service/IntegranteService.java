@@ -64,7 +64,7 @@ public class IntegranteService {
                 .esLider(request.getEsLider())
                 .identificacion(request.getIdentificacion().trim())
                 .semestreActual(request.getSemestreActual())
-                .edad(request.getEdad())
+                .fechaNacimiento(request.getFechaNacimiento())
                 .direccion(request.getDireccion().trim())
                 .email(request.getEmail().trim().toLowerCase())
                 .celular(request.getCelular().trim())
@@ -91,7 +91,7 @@ public class IntegranteService {
         integrante.setEsLider(request.getEsLider());
         integrante.setIdentificacion(request.getIdentificacion().trim());
         integrante.setSemestreActual(request.getSemestreActual());
-        integrante.setEdad(request.getEdad());
+        integrante.setFechaNacimiento(request.getFechaNacimiento());
         integrante.setDireccion(request.getDireccion().trim());
         integrante.setEmail(request.getEmail().trim().toLowerCase());
         integrante.setCelular(request.getCelular().trim());
@@ -128,6 +128,7 @@ public class IntegranteService {
                 .esLider(integrante.getEsLider())
                 .identificacion(integrante.getIdentificacion())
                 .semestreActual(integrante.getSemestreActual())
+                .fechaNacimiento(integrante.getFechaNacimiento())
                 .edad(integrante.getEdad())
                 .direccion(integrante.getDireccion())
                 .email(integrante.getEmail())

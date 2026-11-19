@@ -9,6 +9,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
+import java.time.LocalDate;
+import java.time.Period;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import lombok.AllArgsConstructor;
@@ -51,9 +54,8 @@ public class Integrante {
     @Column(name = "semestre_actual", nullable = false)
     private Integer semestreActual;
 
-    @JdbcTypeCode(SqlTypes.SMALLINT)
-    @Column(nullable = false)
-    private Integer edad;
+    @Column(name = "fecha_nacimiento", nullable = false)
+    private LocalDate fechaNacimiento;
 
     @Column(nullable = false, length = 255)
     private String direccion;
@@ -67,5 +69,10 @@ public class Integrante {
     @Column(name = "es_lider", nullable = false)
     @Builder.Default
     private Boolean esLider = false;
+
+    @Transient
+    public Integer getEdad() {
+        return fechaNacimiento != null ? Period.between(fechaNacimiento, LocalDate.now()).getYears() : null;
+    }
 }
 

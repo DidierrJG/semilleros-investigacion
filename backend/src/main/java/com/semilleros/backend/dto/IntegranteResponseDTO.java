@@ -1,6 +1,7 @@
 package com.semilleros.backend.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -46,7 +47,10 @@ public class IntegranteResponseDTO {
     @Schema(description = "Semestre actual cursado", example = "4")
     private Integer semestreActual;
 
-    @Schema(description = "Edad del integrante", example = "20")
+    @Schema(description = "Fecha de nacimiento del integrante", example = "2003-05-14")
+    private LocalDate fechaNacimiento;
+
+    @Schema(description = "Edad del integrante calculada automáticamente", example = "20")
     private Integer edad;
 
     @Schema(description = "Dirección de residencia", example = "Calle 123 # 45-67, Bogotá")

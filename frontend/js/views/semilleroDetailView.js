@@ -92,7 +92,7 @@ export function renderSemilleroDetailView(container, semilleroId) {
                   </div>
                 </td>
                 <td><code>${escapeHtml(i.codigo)}</code></td>
-                <td>${escapeHtml(i.programa)}</td>
+                <td>${escapeHtml(i.programaNombre || i.programa || '')}</td>
                 <td>
                   ${
                     i.esLider

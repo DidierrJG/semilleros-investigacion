@@ -13,6 +13,7 @@ function updateSidebarStatus(state) {
   const linCount = document.getElementById('navCountLineas');
   const tipoActCount = document.getElementById('navCountTiposActividad');
   const dirCount = document.getElementById('navCountDirectores');
+  const progCount = document.getElementById('navCountProgramas');
   const dot = document.getElementById('apiStatusDot');
   const text = document.getElementById('apiStatusText');
   const url = document.getElementById('apiStatusUrl');
@@ -26,6 +27,7 @@ function updateSidebarStatus(state) {
   if (linCount) linCount.textContent = String(state.lineas.length);
   if (tipoActCount) tipoActCount.textContent = String(state.tiposActividad.length);
   if (dirCount) dirCount.textContent = String(state.directores.length);
+  if (progCount) progCount.textContent = String((state.programas || []).length);
 
   if (url) {
     url.textContent = API_BASE_URL.replace(/^https?:\/\//, '');
