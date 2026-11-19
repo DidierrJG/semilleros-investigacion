@@ -75,7 +75,8 @@ class SemilleroServiceTest {
         Director director = Director.builder().id(1L).nombre("Ana").correo("ana@uni.edu").build();
         DirectorResponseDTO directorDTO = new DirectorResponseDTO(1L, "Ana", "ana@uni.edu");
         GrupoInvestigacion grupo = GrupoInvestigacion.builder().id(2L).nombre("GSI").sigla("GSI").build();
-        GrupoInvestigacionResponseDTO grupoDTO = GrupoInvestigacionResponseDTO.builder().id(2L).nombre("GSI").sigla("GSI").build();
+        GrupoInvestigacionResponseDTO grupoDTO = GrupoInvestigacionResponseDTO.builder().id(2L).nombre("GSI")
+                .sigla("GSI").build();
         Linea linea = Linea.builder().id(5L).nombre("Machine Learning").build();
         LineaResponseDTO lineaDTO = new LineaResponseDTO(5L, "Machine Learning");
 

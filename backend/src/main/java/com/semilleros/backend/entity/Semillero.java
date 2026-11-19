@@ -60,12 +60,7 @@ public class Semillero {
     private Director director;
 
     @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "semillero_lineas",
-            joinColumns = @JoinColumn(name = "semillero_id"),
-            inverseJoinColumns = @JoinColumn(name = "linea_id")
-    )
+    @JoinTable(name = "semillero_lineas", joinColumns = @JoinColumn(name = "semillero_id"), inverseJoinColumns = @JoinColumn(name = "linea_id"))
     @Builder.Default
     private Set<Linea> lineas = new HashSet<>();
 }
-

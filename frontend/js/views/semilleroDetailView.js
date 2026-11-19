@@ -46,14 +46,14 @@ export function renderSemilleroDetailView(container, semilleroId) {
 
   const lineasTagsHtml = (semillero.lineas || []).length
     ? semillero.lineas
-        .map(
-          (l) => `
+      .map(
+        (l) => `
         <span class="tag">
           <span>${escapeHtml(l.nombre)}</span>
           <button type="button" class="tag__remove" data-remove-linea="${l.id}" title="Desasociar línea" aria-label="Desasociar ${escapeHtml(l.nombre)}">✕</button>
         </span>`
-        )
-        .join('')
+      )
+      .join('')
     : '<p class="text-sm text-muted">Este semillero aún no tiene líneas de investigación asociadas.</p>';
 
   const addLineaControlHtml = availableLineas.length
@@ -82,8 +82,8 @@ export function renderSemilleroDetailView(container, semilleroId) {
           </thead>
           <tbody>
             ${integrantes
-              .map(
-                (i) => `
+      .map(
+        (i) => `
               <tr>
                 <td>
                   <div class="person-cell">
@@ -94,11 +94,10 @@ export function renderSemilleroDetailView(container, semilleroId) {
                 <td><code>${escapeHtml(i.codigo)}</code></td>
                 <td>${escapeHtml(i.programaNombre || i.programa || '')}</td>
                 <td>
-                  ${
-                    i.esLider
-                      ? '<span class="badge badge--leader">★ Líder</span>'
-                      : '<span class="badge badge--member">Integrante</span>'
-                  }
+                  ${i.esLider
+            ? '<span class="badge badge--leader">★ Líder</span>'
+            : '<span class="badge badge--member">Integrante</span>'
+          }
                 </td>
                 <td style="text-align: right;">
                   <div class="card-actions" style="justify-content: flex-end;">
@@ -107,15 +106,15 @@ export function renderSemilleroDetailView(container, semilleroId) {
                   </div>
                 </td>
               </tr>`
-              )
-              .join('')}
+      )
+      .join('')}
           </tbody>
         </table>
       </div>`
     : renderEmptyState(
-        'Sin integrantes registrados',
-        'Agrega estudiantes a este semillero usando el botón "+ Agregar integrante".'
-      );
+      'Sin integrantes registrados',
+      'Agrega estudiantes a este semillero usando el botón "+ Agregar integrante".'
+    );
 
   const productosRowsHtml = productos.length
     ? `
@@ -131,8 +130,8 @@ export function renderSemilleroDetailView(container, semilleroId) {
           </thead>
           <tbody>
             ${productos
-              .map(
-                (p) => `
+      .map(
+        (p) => `
               <tr>
                 <td>
                   <strong>${escapeHtml(p.nombre)}</strong>
@@ -145,8 +144,8 @@ export function renderSemilleroDetailView(container, semilleroId) {
                 <td>
                   <div class="tags-wrap">
                     ${(p.integrantes || [])
-                      .map((i) => `<span class="tag"><span>${escapeHtml(i.nombre)}</span></span>`)
-                      .join('')}
+            .map((i) => `<span class="tag"><span>${escapeHtml(i.nombre)}</span></span>`)
+            .join('')}
                   </div>
                 </td>
                 <td style="text-align: right;">
@@ -156,15 +155,15 @@ export function renderSemilleroDetailView(container, semilleroId) {
                   </div>
                 </td>
               </tr>`
-              )
-              .join('')}
+      )
+      .join('')}
           </tbody>
         </table>
       </div>`
     : renderEmptyState(
-        'Sin productos registrados',
-        'Registra los productos desarrollados por este semillero según la tipología de Minciencias.'
-      );
+      'Sin productos registrados',
+      'Registra los productos desarrollados por este semillero según la tipología de Minciencias.'
+    );
 
   const actividadesRowsHtml = actividades.length
     ? `
@@ -180,8 +179,8 @@ export function renderSemilleroDetailView(container, semilleroId) {
           </thead>
           <tbody>
             ${actividades
-              .map(
-                (a) => `
+      .map(
+        (a) => `
               <tr>
                 <td>
                   <strong>${escapeHtml(a.nombre)}</strong>
@@ -206,15 +205,15 @@ export function renderSemilleroDetailView(container, semilleroId) {
                   </div>
                 </td>
               </tr>`
-              )
-              .join('')}
+      )
+      .join('')}
           </tbody>
         </table>
       </div>`
     : renderEmptyState(
-        'Sin actividades de investigación registradas',
-        'Registra las actividades de investigación desarrolladas por este semillero.'
-      );
+      'Sin actividades de investigación registradas',
+      'Registra las actividades de investigación desarrolladas por este semillero.'
+    );
 
   const capacitacionesRowsHtml = capacitaciones.length
     ? `
@@ -232,8 +231,8 @@ export function renderSemilleroDetailView(container, semilleroId) {
           </thead>
           <tbody>
             ${capacitaciones
-              .map(
-                (c) => `
+      .map(
+        (c) => `
               <tr>
                 <td>
                   <strong>${escapeHtml(c.nombreCapacitacion)}</strong>
@@ -266,25 +265,24 @@ export function renderSemilleroDetailView(container, semilleroId) {
                   </div>
                 </td>
               </tr>`
-              )
-              .join('')}
+      )
+      .join('')}
           </tbody>
         </table>
       </div>`
     : renderEmptyState(
-        'Sin capacitaciones registradas',
-        'Registra los talleres formativos y capacitaciones dictadas por este semillero.'
-      );
+      'Sin capacitaciones registradas',
+      'Registra los talleres formativos y capacitaciones dictadas por este semillero.'
+    );
 
   container.innerHTML = `
     <section>
       <div class="hero-banner">
         <div style="display: flex; align-items: center; gap: 18px;">
-          ${
-            semillero.logoUrl
-              ? `<img src="${escapeHtml(semillero.logoUrl)}" alt="${escapeHtml(semillero.sigla)}" style="width: 72px; height: 72px; object-fit: contain; border-radius: var(--radius-md); background: rgba(255, 255, 255, 0.95); padding: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); flex-shrink: 0;" />`
-              : ''
-          }
+          ${semillero.logoUrl
+      ? `<img src="${escapeHtml(semillero.logoUrl)}" alt="${escapeHtml(semillero.sigla)}" style="width: 72px; height: 72px; object-fit: contain; border-radius: var(--radius-md); background: rgba(255, 255, 255, 0.95); padding: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); flex-shrink: 0;" />`
+      : ''
+    }
           <div>
             <span class="hero-banner__sigla">${escapeHtml(semillero.sigla)}</span>
             <h1 class="hero-banner__title">${escapeHtml(semillero.nombre)}</h1>

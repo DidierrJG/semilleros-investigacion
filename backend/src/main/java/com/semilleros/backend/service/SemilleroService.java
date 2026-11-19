@@ -75,7 +75,8 @@ public class SemilleroService {
                 .mision(request.getMision())
                 .vision(request.getVision())
                 .objetivoGeneral(request.getObjetivoGeneral())
-                .logoUrl(request.getLogoUrl() != null && !request.getLogoUrl().isBlank() ? request.getLogoUrl().trim() : null)
+                .logoUrl(request.getLogoUrl() != null && !request.getLogoUrl().isBlank() ? request.getLogoUrl().trim()
+                        : null)
                 .director(director)
                 .lineas(lineas)
                 .build();
@@ -149,7 +150,6 @@ public class SemilleroService {
         semilleroRepository.delete(semillero);
     }
 
-
     public Semillero findEntityById(Long id) {
         return semilleroRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Semillero no encontrado con id: " + id));
@@ -208,7 +208,8 @@ public class SemilleroService {
         String logoUrl = semillero.getLogoUrl();
 
         if (logoUrl == null || logoUrl.isBlank()) {
-            throw new ResourceNotFoundException("El semillero " + semillero.getSigla() + " no tiene un logo configurado");
+            throw new ResourceNotFoundException(
+                    "El semillero " + semillero.getSigla() + " no tiene un logo configurado");
         }
 
         String filename = logoUrl.substring(logoUrl.lastIndexOf('/') + 1);

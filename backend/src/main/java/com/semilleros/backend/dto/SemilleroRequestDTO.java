@@ -51,4 +51,3 @@ public class SemilleroRequestDTO {
     @Schema(description = "IDs de las líneas de investigación asociadas al semillero", example = "[1, 2]")
     private Set<Long> lineaIds;
 }
-

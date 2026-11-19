@@ -9,3 +9,4 @@ public interface FileStorageService {
     String determineContentType(String filename, Resource resource);
     void deleteFile(FileCategory category, String filename);
 }
+

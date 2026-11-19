@@ -45,4 +45,3 @@ public class SemilleroResponseDTO {
     @Schema(description = "Líneas de investigación asociadas al semillero")
     private List<LineaResponseDTO> lineas;
 }
-

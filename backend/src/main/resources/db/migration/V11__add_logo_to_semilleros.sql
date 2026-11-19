@@ -2,3 +2,4 @@
 
 ALTER TABLE semilleros
     ADD COLUMN logo_url VARCHAR(300);
+

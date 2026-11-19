@@ -29,3 +29,4 @@ public enum FileCategory {
         throw new IllegalArgumentException("Categoría de archivo desconocida: " + category);
     }
 }
+
