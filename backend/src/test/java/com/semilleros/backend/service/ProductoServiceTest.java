@@ -6,6 +6,7 @@ import com.semilleros.backend.dto.ProductoResponseDTO;
 import com.semilleros.backend.dto.TipoProductoDTO;
 import com.semilleros.backend.entity.Integrante;
 import com.semilleros.backend.entity.Producto;
+import com.semilleros.backend.entity.ProgramaAcademico;
 import com.semilleros.backend.entity.Semillero;
 import com.semilleros.backend.entity.TipoProducto;
 import com.semilleros.backend.exception.BusinessException;
@@ -46,12 +47,13 @@ class ProductoServiceTest {
     @Test
     void create_shouldSaveAndReturnProducto_whenValid() {
         Semillero semillero = Semillero.builder().id(10L).nombre("Semillero IA").sigla("SIAA").build();
+        ProgramaAcademico programa = ProgramaAcademico.builder().id(1L).nombre("Ingeniería de Sistemas").build();
         Integrante integrante = Integrante.builder()
                 .id(1L)
                 .semillero(semillero)
                 .codigo("20231001")
                 .nombre("Valentina Ruiz")
-                .programa("Ingeniería de Sistemas")
+                .programa(programa)
                 .esLider(true)
                 .build();
 

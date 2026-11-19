@@ -9,6 +9,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -45,9 +47,11 @@ public class Integrante {
     @Column(nullable = false, length = 20)
     private String identificacion;
 
+    @JdbcTypeCode(SqlTypes.SMALLINT)
     @Column(name = "semestre_actual", nullable = false)
     private Integer semestreActual;
 
+    @JdbcTypeCode(SqlTypes.SMALLINT)
     @Column(nullable = false)
     private Integer edad;
 
