@@ -10,6 +10,7 @@ import com.semilleros.backend.entity.Semillero;
 import com.semilleros.backend.exception.BusinessException;
 import com.semilleros.backend.exception.ResourceNotFoundException;
 import com.semilleros.backend.repository.ActividadRepository;
+import com.semilleros.backend.repository.CapacitacionRepository;
 import com.semilleros.backend.repository.IntegranteRepository;
 import com.semilleros.backend.repository.ProductoRepository;
 import com.semilleros.backend.repository.SemilleroRepository;
@@ -30,6 +31,7 @@ public class SemilleroService {
     private final IntegranteRepository integranteRepository;
     private final ProductoRepository productoRepository;
     private final ActividadRepository actividadRepository;
+    private final CapacitacionRepository capacitacionRepository;
     private final DirectorService directorService;
     private final LineaService lineaService;
     private final GrupoInvestigacionService grupoInvestigacionService;
@@ -127,6 +129,9 @@ public class SemilleroService {
         }
         if (actividadRepository.existsBySemilleroId(id)) {
             throw new BusinessException("No se puede eliminar el semillero porque tiene actividades asociadas");
+        }
+        if (capacitacionRepository.existsBySemilleroId(id)) {
+            throw new BusinessException("No se puede eliminar el semillero porque tiene capacitaciones asociadas");
         }
         semillero.getLineas().clear();
         semilleroRepository.delete(semillero);
