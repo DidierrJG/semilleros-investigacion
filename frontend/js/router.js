@@ -8,6 +8,7 @@ import { renderActividadesView } from './views/actividadesView.js';
 import { renderDirectoresView } from './views/directoresView.js';
 import { renderLineasView } from './views/lineasView.js';
 import { renderTiposActividadView } from './views/tiposActividadView.js';
+import { renderGruposInvestigacionView } from './views/gruposInvestigacionView.js';
 
 function updateNavActive(routeKey) {
   document.querySelectorAll('.nav-link[data-route]').forEach((link) => {
@@ -83,6 +84,13 @@ export function renderCurrentRoute() {
     updateNavActive('actividades');
     updateBreadcrumb([{ label: 'Otras Actividades de Investigación' }]);
     renderActividadesView(container);
+    return;
+  }
+
+  if (section === 'grupos-investigacion') {
+    updateNavActive('grupos-investigacion');
+    updateBreadcrumb([{ label: 'Grupos de Investigación UFPS' }]);
+    renderGruposInvestigacionView(container);
     return;
   }
 

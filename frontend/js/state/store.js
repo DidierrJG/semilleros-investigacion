@@ -5,6 +5,7 @@ import { directoresApi } from '../api/directoresApi.js';
 import { productosApi } from '../api/productosApi.js';
 import { tiposActividadApi } from '../api/tiposActividadApi.js';
 import { actividadesApi } from '../api/actividadesApi.js';
+import { gruposInvestigacionApi } from '../api/gruposInvestigacionApi.js';
 
 const listeners = new Set();
 
@@ -13,6 +14,7 @@ export const store = {
   integrantes: [],
   lineas: [],
   directores: [],
+  gruposInvestigacion: [],
   productos: [],
   tiposProducto: [],
   tiposActividad: [],
@@ -32,11 +34,12 @@ function notify() {
 
 export async function loadAllData() {
   try {
-    const [semilleros, integrantes, lineas, directores, productos, tiposProducto, tiposActividad, actividades] = await Promise.all([
+    const [semilleros, integrantes, lineas, directores, gruposInvestigacion, productos, tiposProducto, tiposActividad, actividades] = await Promise.all([
       semillerosApi.getAll(),
       integrantesApi.getAll(),
       lineasApi.getAll(),
       directoresApi.getAll(),
+      gruposInvestigacionApi.getAll(),
       productosApi.getAll(),
       productosApi.getTipos(),
       tiposActividadApi.getAll(),
@@ -47,6 +50,7 @@ export async function loadAllData() {
     store.integrantes = integrantes;
     store.lineas = lineas;
     store.directores = directores;
+    store.gruposInvestigacion = gruposInvestigacion;
     store.productos = productos;
     store.tiposProducto = tiposProducto;
     store.tiposActividad = tiposActividad;
@@ -60,6 +64,14 @@ export async function loadAllData() {
   } finally {
     notify();
   }
+}
+
+export function getGrupoInvestigacionById(id) {
+  return store.gruposInvestigacion.find((g) => Number(g.id) === Number(id)) || null;
+}
+
+export function getSemillerosByGrupo(grupoId) {
+  return store.semilleros.filter((s) => Number(s.grupoInvestigacion?.id) === Number(grupoId));
 }
 
 export function getSemilleroById(id) {

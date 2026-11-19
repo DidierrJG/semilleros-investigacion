@@ -50,6 +50,15 @@ export function openSemilleroFormModal(semillero = null, onSaved = null) {
     )
     .join('');
 
+  const grupoOptions = (store.gruposInvestigacion || [])
+    .map(
+      (g) => `
+      <option value="${g.id}" ${Number(semillero?.grupoInvestigacion?.id) === Number(g.id) ? 'selected' : ''}>
+        ${escapeHtml(g.sigla)} - ${escapeHtml(g.nombre)} (${escapeHtml(g.facultad)})
+      </option>`
+    )
+    .join('');
+
   const lineasCheckboxes = store.lineas.length
     ? store.lineas
         .map(
@@ -77,9 +86,11 @@ export function openSemilleroFormModal(semillero = null, onSaved = null) {
             value="${escapeHtml(semillero?.sigla || '')}" placeholder="Ej. SIAA" />
         </div>
         <div class="form-field form-field--full">
-          <label class="form-label" for="semGrupo">Grupo de investigación *</label>
-          <input class="form-control" id="semGrupo" name="grupoInvestigacion" required maxlength="180"
-            value="${escapeHtml(semillero?.grupoInvestigacion || '')}" placeholder="Ej. Grupo de Sistemas Inteligentes" />
+          <label class="form-label" for="semGrupo">Grupo de investigación UFPS *</label>
+          <select class="form-control" id="semGrupo" name="grupoInvestigacionId" required>
+            <option value="">Seleccione un grupo de investigación...</option>
+            ${grupoOptions}
+          </select>
         </div>
         <div class="form-field form-field--full">
           <label class="form-label" for="semDirector">Director responsable *</label>
@@ -127,7 +138,7 @@ export function openSemilleroFormModal(semillero = null, onSaved = null) {
         const payload = {
           nombre: String(formData.get('nombre') || '').trim(),
           sigla: String(formData.get('sigla') || '').trim(),
-          grupoInvestigacion: String(formData.get('grupoInvestigacion') || '').trim(),
+          grupoInvestigacionId: Number(formData.get('grupoInvestigacionId')),
           mision: String(formData.get('mision') || '').trim(),
           vision: String(formData.get('vision') || '').trim(),
           objetivoGeneral: String(formData.get('objetivoGeneral') || '').trim(),
@@ -287,7 +298,7 @@ export function openSemilleroPreviewModal(semillero, integrante = null) {
           <div class="info-block__label">Nombre y Grupo de Investigación</div>
           <div class="info-block__text">
             <strong>${escapeHtml(semillero.nombre)}</strong><br/>
-            ${escapeHtml(semillero.grupoInvestigacion)}
+            ${escapeHtml(semillero.grupoInvestigacion?.sigla ? `${semillero.grupoInvestigacion.sigla} · ${semillero.grupoInvestigacion.nombre}` : (semillero.grupoInvestigacion?.nombre || 'No asignado'))}
           </div>
         </div>
         <div class="info-block">

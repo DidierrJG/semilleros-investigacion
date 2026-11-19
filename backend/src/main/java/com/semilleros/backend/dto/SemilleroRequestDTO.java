@@ -28,10 +28,9 @@ public class SemilleroRequestDTO {
     @Schema(description = "Sigla única del semillero", example = "SIAA")
     private String sigla;
 
-    @NotBlank(message = "El grupo de investigación es obligatorio")
-    @Size(max = 180, message = "El grupo de investigación no puede superar los 180 caracteres")
-    @Schema(description = "Nombre del grupo de investigación al que pertenece", example = "Grupo de Sistemas Inteligentes")
-    private String grupoInvestigacion;
+    @NotNull(message = "El ID del grupo de investigación es obligatorio")
+    @Schema(description = "Identificador del grupo de investigación de la UFPS al que pertenece", example = "1")
+    private Long grupoInvestigacionId;
 
     @Schema(description = "Misión del semillero", example = "Fomentar la investigación formativa en IA.")
     private String mision;

@@ -24,8 +24,8 @@ public class SemilleroResponseDTO {
     @Schema(description = "Sigla única del semillero", example = "SIAA")
     private String sigla;
 
-    @Schema(description = "Grupo de investigación", example = "Grupo de Sistemas Inteligentes")
-    private String grupoInvestigacion;
+    @Schema(description = "Grupo de investigación de la UFPS al que está adscrito el semillero")
+    private GrupoInvestigacionResponseDTO grupoInvestigacion;
 
     @Schema(description = "Misión del semillero")
     private String mision;

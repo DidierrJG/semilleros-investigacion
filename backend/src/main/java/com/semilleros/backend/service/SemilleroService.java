@@ -4,6 +4,7 @@ import com.semilleros.backend.dto.LineaResponseDTO;
 import com.semilleros.backend.dto.SemilleroRequestDTO;
 import com.semilleros.backend.dto.SemilleroResponseDTO;
 import com.semilleros.backend.entity.Director;
+import com.semilleros.backend.entity.GrupoInvestigacion;
 import com.semilleros.backend.entity.Linea;
 import com.semilleros.backend.entity.Semillero;
 import com.semilleros.backend.exception.BusinessException;
@@ -31,6 +32,7 @@ public class SemilleroService {
     private final ActividadRepository actividadRepository;
     private final DirectorService directorService;
     private final LineaService lineaService;
+    private final GrupoInvestigacionService grupoInvestigacionService;
 
     @Transactional(readOnly = true)
     public List<SemilleroResponseDTO> findAll() {
@@ -53,12 +55,13 @@ public class SemilleroService {
         }
 
         Director director = directorService.findEntityById(request.getDirectorId());
+        GrupoInvestigacion grupo = grupoInvestigacionService.findEntityById(request.getGrupoInvestigacionId());
         Set<Linea> lineas = resolveLineas(request.getLineaIds());
 
         Semillero semillero = Semillero.builder()
                 .nombre(request.getNombre().trim())
                 .sigla(sigla)
-                .grupoInvestigacion(request.getGrupoInvestigacion().trim())
+                .grupoInvestigacion(grupo)
                 .mision(request.getMision())
                 .vision(request.getVision())
                 .objetivoGeneral(request.getObjetivoGeneral())
@@ -79,10 +82,11 @@ public class SemilleroService {
         }
 
         Director director = directorService.findEntityById(request.getDirectorId());
+        GrupoInvestigacion grupo = grupoInvestigacionService.findEntityById(request.getGrupoInvestigacionId());
 
         semillero.setNombre(request.getNombre().trim());
         semillero.setSigla(sigla);
-        semillero.setGrupoInvestigacion(request.getGrupoInvestigacion().trim());
+        semillero.setGrupoInvestigacion(grupo);
         semillero.setMision(request.getMision());
         semillero.setVision(request.getVision());
         semillero.setObjetivoGeneral(request.getObjetivoGeneral());
@@ -154,7 +158,7 @@ public class SemilleroService {
                 .id(semillero.getId())
                 .nombre(semillero.getNombre())
                 .sigla(semillero.getSigla())
-                .grupoInvestigacion(semillero.getGrupoInvestigacion())
+                .grupoInvestigacion(grupoInvestigacionService.toResponseDTO(semillero.getGrupoInvestigacion()))
                 .mision(semillero.getMision())
                 .vision(semillero.getVision())
                 .objetivoGeneral(semillero.getObjetivoGeneral())
