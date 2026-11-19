@@ -125,3 +125,4 @@ export function createProgressBar(percentage = 0) {
     </div>
   `;
 }
+
