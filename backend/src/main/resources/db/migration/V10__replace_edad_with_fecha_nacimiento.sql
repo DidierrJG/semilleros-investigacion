@@ -13,3 +13,4 @@ ALTER TABLE integrantes DROP COLUMN edad;
 
 -- Quitar default para que las futuras inserciones sean explícitas
 ALTER TABLE integrantes ALTER COLUMN fecha_nacimiento DROP DEFAULT;
+

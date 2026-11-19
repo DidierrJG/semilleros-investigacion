@@ -1,9 +1,11 @@
-import { httpClient } from './httpClient.js';
+import { request } from './httpClient.js';
 
 export const programasApi = {
-  getAll: () => httpClient.get('/programas'),
-  getById: (id) => httpClient.get(`/programas/${id}`),
-  create: (data) => httpClient.post('/programas', data),
-  update: (id, data) => httpClient.put(`/programas/${id}`, data),
-  remove: (id) => httpClient.delete(`/programas/${id}`),
+  getAll: () => request('/programas'),
+  getById: (id) => request(`/programas/${id}`),
+  create: (payload) =>
+    request('/programas', { method: 'POST', body: JSON.stringify(payload) }),
+  update: (id, payload) =>
+    request(`/programas/${id}`, { method: 'PUT', body: JSON.stringify(payload) }),
+  remove: (id) => request(`/programas/${id}`, { method: 'DELETE' }),
 };
