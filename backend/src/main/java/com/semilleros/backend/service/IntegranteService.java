@@ -59,6 +59,12 @@ public class IntegranteService {
                 .nombre(request.getNombre().trim())
                 .programa(request.getPrograma().trim())
                 .esLider(request.getEsLider())
+                .identificacion(request.getIdentificacion().trim())
+                .semestreActual(request.getSemestreActual())
+                .edad(request.getEdad())
+                .direccion(request.getDireccion().trim())
+                .email(request.getEmail().trim().toLowerCase())
+                .celular(request.getCelular().trim())
                 .build();
 
         return toResponseDTO(integranteRepository.save(integrante));
@@ -79,6 +85,12 @@ public class IntegranteService {
         integrante.setNombre(request.getNombre().trim());
         integrante.setPrograma(request.getPrograma().trim());
         integrante.setEsLider(request.getEsLider());
+        integrante.setIdentificacion(request.getIdentificacion().trim());
+        integrante.setSemestreActual(request.getSemestreActual());
+        integrante.setEdad(request.getEdad());
+        integrante.setDireccion(request.getDireccion().trim());
+        integrante.setEmail(request.getEmail().trim().toLowerCase());
+        integrante.setCelular(request.getCelular().trim());
 
         return toResponseDTO(integranteRepository.save(integrante));
     }
@@ -108,6 +120,12 @@ public class IntegranteService {
                 .nombre(integrante.getNombre())
                 .programa(integrante.getPrograma())
                 .esLider(integrante.getEsLider())
+                .identificacion(integrante.getIdentificacion())
+                .semestreActual(integrante.getSemestreActual())
+                .edad(integrante.getEdad())
+                .direccion(integrante.getDireccion())
+                .email(integrante.getEmail())
+                .celular(integrante.getCelular())
                 .build();
     }
 }

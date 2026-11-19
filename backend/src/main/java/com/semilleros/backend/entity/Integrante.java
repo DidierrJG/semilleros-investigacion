@@ -41,6 +41,24 @@ public class Integrante {
     @Column(nullable = false, length = 160)
     private String programa;
 
+    @Column(nullable = false, length = 20)
+    private String identificacion;
+
+    @Column(name = "semestre_actual", nullable = false)
+    private Integer semestreActual;
+
+    @Column(nullable = false)
+    private Integer edad;
+
+    @Column(nullable = false, length = 255)
+    private String direccion;
+
+    @Column(nullable = false, length = 160)
+    private String email;
+
+    @Column(nullable = false, length = 20)
+    private String celular;
+
     @Column(name = "es_lider", nullable = false)
     @Builder.Default
     private Boolean esLider = false;

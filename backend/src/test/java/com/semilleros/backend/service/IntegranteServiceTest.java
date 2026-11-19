@@ -37,6 +37,12 @@ class IntegranteServiceTest {
                 .nombre("Carlos Gómez")
                 .programa("Ingeniería de Sistemas")
                 .esLider(true)
+                .identificacion("1020304050")
+                .semestreActual(4)
+                .edad(20)
+                .direccion("Calle 123 # 45-67, Bogotá")
+                .email("carlos.gomez@universidad.edu.co")
+                .celular("3001234567")
                 .build();
 
         Semillero semillero = Semillero.builder().id(10L).nombre("Semillero IA").sigla("SIA").build();
@@ -47,6 +53,12 @@ class IntegranteServiceTest {
                 .nombre("Carlos Gómez")
                 .programa("Ingeniería de Sistemas")
                 .esLider(true)
+                .identificacion("1020304050")
+                .semestreActual(4)
+                .edad(20)
+                .direccion("Calle 123 # 45-67, Bogotá")
+                .email("carlos.gomez@universidad.edu.co")
+                .celular("3001234567")
                 .build();
 
         when(semilleroService.findEntityById(10L)).thenReturn(semillero);
@@ -69,6 +81,12 @@ class IntegranteServiceTest {
                 .nombre("Carlos Gómez")
                 .programa("Ingeniería de Sistemas")
                 .esLider(false)
+                .identificacion("1020304050")
+                .semestreActual(4)
+                .edad(20)
+                .direccion("Calle 123 # 45-67, Bogotá")
+                .email("carlos.gomez@universidad.edu.co")
+                .celular("3001234567")
                 .build();
 
         Semillero semillero = Semillero.builder().id(10L).nombre("Semillero IA").sigla("SIA").build();
