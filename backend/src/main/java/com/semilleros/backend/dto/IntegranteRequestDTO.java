@@ -34,10 +34,9 @@ public class IntegranteRequestDTO {
     @Schema(description = "Nombre completo del integrante", example = "Carlos Andrés Gómez")
     private String nombre;
 
-    @NotBlank(message = "El programa académico es obligatorio")
-    @Size(max = 160, message = "El programa no puede superar los 160 caracteres")
-    @Schema(description = "Programa académico del integrante", example = "Ingeniería de Sistemas")
-    private String programa;
+    @NotNull(message = "El ID del programa académico es obligatorio")
+    @Schema(description = "Identificador del programa académico al que pertenece el integrante", example = "1")
+    private Long programaId;
 
     @NotNull(message = "Debe indicar si el integrante es líder")
     @Schema(description = "Indica si el integrante es líder del semillero", example = "false")

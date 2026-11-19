@@ -16,5 +16,7 @@ public interface IntegranteRepository extends JpaRepository<Integrante, Long> {
     boolean existsBySemilleroIdAndCodigoIgnoreCase(Long semilleroId, String codigo);
 
     boolean existsBySemilleroIdAndCodigoIgnoreCaseAndIdNot(Long semilleroId, String codigo, Long id);
+
+    boolean existsByProgramaId(Long programaId);
 }
 

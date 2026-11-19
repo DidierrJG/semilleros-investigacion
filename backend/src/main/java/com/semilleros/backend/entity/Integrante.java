@@ -38,8 +38,9 @@ public class Integrante {
     @Column(nullable = false, length = 160)
     private String nombre;
 
-    @Column(nullable = false, length = 160)
-    private String programa;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "programa_id", nullable = false)
+    private ProgramaAcademico programa;
 
     @Column(nullable = false, length = 20)
     private String identificacion;
