@@ -5,8 +5,26 @@ import { productosApi } from '../api/productosApi.js';
 import { tiposActividadApi } from '../api/tiposActividadApi.js';
 import { actividadesApi } from '../api/actividadesApi.js';
 import { capacitacionesApi } from '../api/capacitacionesApi.js';
+import { API_BASE_URL } from '../config.js';
 import { openModal, closeModal } from './modal.js';
 import { showToast } from './toast.js';
+export {
+  createPageHeader,
+  createKpiCard,
+  createKpiGrid,
+  createToolbar,
+  createViewToggle,
+  createProgressBar,
+} from './designModel.js';
+
+export function resolveImageUrl(url) {
+  if (!url) return '';
+  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:') || url.startsWith('blob:')) {
+    return url;
+  }
+  const base = API_BASE_URL.replace(/\/api\/?$/, '');
+  return `${base}${url.startsWith('/') ? '' : '/'}${url}`;
+}
 
 export function escapeHtml(value) {
   if (value === null || value === undefined) return '';
@@ -51,6 +69,15 @@ export function openSemilleroFormModal(semillero = null, onSaved = null) {
     )
     .join('');
 
+  const grupoOptions = (store.gruposInvestigacion || [])
+    .map(
+      (g) => `
+      <option value="${g.id}" ${Number(semillero?.grupoInvestigacion?.id) === Number(g.id) ? 'selected' : ''}>
+        ${escapeHtml(g.sigla)} - ${escapeHtml(g.nombre)} (${escapeHtml(g.facultad)})
+      </option>`
+    )
+    .join('');
+
   const lineasCheckboxes = store.lineas.length
     ? store.lineas
         .map(
@@ -78,9 +105,11 @@ export function openSemilleroFormModal(semillero = null, onSaved = null) {
             value="${escapeHtml(semillero?.sigla || '')}" placeholder="Ej. SIAA" />
         </div>
         <div class="form-field form-field--full">
-          <label class="form-label" for="semGrupo">Grupo de investigación *</label>
-          <input class="form-control" id="semGrupo" name="grupoInvestigacion" required maxlength="180"
-            value="${escapeHtml(semillero?.grupoInvestigacion || '')}" placeholder="Ej. Grupo de Sistemas Inteligentes" />
+          <label class="form-label" for="semGrupo">Grupo de investigación UFPS *</label>
+          <select class="form-control" id="semGrupo" name="grupoInvestigacionId" required>
+            <option value="">Seleccione un grupo de investigación...</option>
+            ${grupoOptions}
+          </select>
         </div>
         <div class="form-field form-field--full">
           <label class="form-label" for="semDirector">Director responsable *</label>
@@ -88,6 +117,31 @@ export function openSemilleroFormModal(semillero = null, onSaved = null) {
             <option value="">Seleccione un director...</option>
             ${directorOptions}
           </select>
+        </div>
+        <div class="form-field form-field--full">
+          <label class="form-label">Foto / Emblema del Semillero</label>
+          <div class="foto-upload-container">
+            <div class="foto-upload-preview" id="semFotoPreviewBox">
+              ${semillero?.fotoUrl
+                ? `<img src="${escapeHtml(resolveImageUrl(semillero.fotoUrl))}" id="semFotoImg" alt="Foto semillero" style="width: 100%; height: 100%; object-fit: cover; border-radius: var(--radius-sm);" />`
+                : `<span id="semFotoPlaceholder" class="sigla-badge" style="font-size: 0.9rem;">${escapeHtml(semillero?.sigla || 'FOTO')}</span>`
+              }
+            </div>
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 6px;">
+              <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                <input type="file" id="semFotoInput" accept="image/png,image/jpeg,image/webp,image/gif" style="display: none;" />
+                <button type="button" class="btn btn--secondary btn--sm" id="semFotoSelectBtn">
+                  📁 Seleccionar foto
+                </button>
+                <button type="button" class="btn btn--danger btn--sm" id="semFotoRemoveBtn" style="${semillero?.fotoUrl ? '' : 'display: none;'}">
+                  ✕ Quitar foto
+                </button>
+              </div>
+              <span class="text-xs text-muted" id="semFotoFileName">
+                ${semillero?.fotoUrl ? 'Foto actual asignada en disco' : 'Opcional. Formatos: JPG, PNG, WEBP, GIF (máx. 5MB).'}
+              </span>
+            </div>
+          </div>
         </div>
         <div class="form-field form-field--full">
           <label class="form-label" for="semMision">Misión</label>
@@ -118,6 +172,42 @@ export function openSemilleroFormModal(semillero = null, onSaved = null) {
       const form = backdrop.querySelector('#semilleroForm');
       const errorBox = backdrop.querySelector('#semFormError');
       const saveBtn = backdrop.querySelector('#saveSemilleroBtn');
+      const fileInput = backdrop.querySelector('#semFotoInput');
+      const selectBtn = backdrop.querySelector('#semFotoSelectBtn');
+      const removeBtn = backdrop.querySelector('#semFotoRemoveBtn');
+      const previewBox = backdrop.querySelector('#semFotoPreviewBox');
+      const fileNameSpan = backdrop.querySelector('#semFotoFileName');
+
+      let selectedFile = null;
+      let removeRequested = false;
+
+      selectBtn?.addEventListener('click', () => fileInput?.click());
+
+      fileInput?.addEventListener('change', (e) => {
+        const file = e.target.files?.[0];
+        if (file) {
+          if (file.size > 5 * 1024 * 1024) {
+            showToast('El archivo de imagen no puede superar los 5 MB', 'error');
+            fileInput.value = '';
+            return;
+          }
+          selectedFile = file;
+          removeRequested = false;
+          if (removeBtn) removeBtn.style.display = 'inline-flex';
+          if (fileNameSpan) fileNameSpan.textContent = file.name;
+          const objectUrl = URL.createObjectURL(file);
+          previewBox.innerHTML = `<img src="${objectUrl}" alt="Previsualización" style="width: 100%; height: 100%; object-fit: cover; border-radius: var(--radius-sm);" />`;
+        }
+      });
+
+      removeBtn?.addEventListener('click', () => {
+        selectedFile = null;
+        removeRequested = true;
+        if (fileInput) fileInput.value = '';
+        if (removeBtn) removeBtn.style.display = 'none';
+        if (fileNameSpan) fileNameSpan.textContent = 'Foto eliminada (se guardará al enviar)';
+        previewBox.innerHTML = `<span class="sigla-badge" style="font-size: 0.9rem;">SIN FOTO</span>`;
+      });
 
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -128,7 +218,7 @@ export function openSemilleroFormModal(semillero = null, onSaved = null) {
         const payload = {
           nombre: String(formData.get('nombre') || '').trim(),
           sigla: String(formData.get('sigla') || '').trim(),
-          grupoInvestigacion: String(formData.get('grupoInvestigacion') || '').trim(),
+          grupoInvestigacionId: Number(formData.get('grupoInvestigacionId')),
           mision: String(formData.get('mision') || '').trim(),
           vision: String(formData.get('vision') || '').trim(),
           objetivoGeneral: String(formData.get('objetivoGeneral') || '').trim(),
@@ -140,13 +230,21 @@ export function openSemilleroFormModal(semillero = null, onSaved = null) {
         saveBtn.textContent = 'Guardando...';
 
         try {
+          let savedSemillero;
           if (isEdit) {
-            await semillerosApi.update(semillero.id, payload);
-            showToast('Semillero actualizado correctamente', 'success');
+            savedSemillero = await semillerosApi.update(semillero.id, payload);
           } else {
-            await semillerosApi.create(payload);
-            showToast('Semillero creado correctamente', 'success');
+            savedSemillero = await semillerosApi.create(payload);
           }
+
+          const targetId = savedSemillero?.id || semillero?.id;
+          if (selectedFile && targetId) {
+            await semillerosApi.uploadFoto(targetId, selectedFile);
+          } else if (removeRequested && targetId && isEdit && semillero?.fotoUrl) {
+            await semillerosApi.removeFoto(targetId);
+          }
+
+          showToast(isEdit ? 'Semillero actualizado correctamente' : 'Semillero creado correctamente', 'success');
           await loadAllData();
           closeModal();
           if (onSaved) onSaved();
@@ -176,39 +274,109 @@ export function openIntegranteFormModal({ integrante = null, defaultSemilleroId 
     )
     .join('');
 
+  const programaOptions = (store.programas || [])
+    .map(
+      (p) => `
+      <option value="${p.id}" ${Number(integrante?.programaId) === Number(p.id) ? 'selected' : ''}>
+        ${escapeHtml(p.nombre)}
+      </option>`
+    )
+    .join('');
+
+  const semestres = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+  const semestreOptions = semestres
+    .map(
+      (s) => `
+      <option value="${s}" ${Number(integrante?.semestreActual || 1) === s ? 'selected' : ''}>
+        Semestre ${s}
+      </option>`
+    )
+    .join('');
+
+  const initialFechaNac = integrante?.fechaNacimiento || '';
+
   openModal({
-    title: isEdit ? `Editar Integrante · ${integrante.nombre}` : 'Agregar Integrante a Semillero',
+    title: isEdit ? `Editar Integrante · ${escapeHtml(integrante.nombre)}` : 'Agregar Integrante a Semillero',
+    size: 'md',
     bodyHtml: `
       <form id="integranteForm" class="form-grid">
         <div class="form-field form-field--full">
-          <label class="form-label" for="intSemillero">Semillero *</label>
+          <label class="form-label" for="intSemillero">Semillero al que pertenece *</label>
           <select class="form-control" id="intSemillero" name="semilleroId" required ${lockSemillero ? 'disabled' : ''}>
             <option value="">Seleccione un semillero...</option>
             ${semilleroOptions}
           </select>
           ${lockSemillero ? `<input type="hidden" name="semilleroId" value="${escapeHtml(selectedSemilleroId)}" />` : ''}
         </div>
+
+        <div class="form-field form-field--full">
+          <label class="form-label" for="intPrograma">Programa académico *</label>
+          <select class="form-control" id="intPrograma" name="programaId" required>
+            <option value="">Seleccione el programa académico...</option>
+            ${programaOptions}
+          </select>
+        </div>
+
         <div class="form-field">
           <label class="form-label" for="intCodigo">Código estudiantil *</label>
           <input class="form-control" id="intCodigo" name="codigo" required maxlength="40"
             value="${escapeHtml(integrante?.codigo || '')}" placeholder="Ej. 1152104" />
         </div>
+
         <div class="form-field">
-          <label class="form-label" for="intPrograma">Programa académico *</label>
-          <input class="form-control" id="intPrograma" name="programa" required maxlength="160"
-            value="${escapeHtml(integrante?.programa || '')}" placeholder="Ej. Ingeniería de Sistemas" />
+          <label class="form-label" for="intIdentificacion">Número de Identificación (C.C. / T.I.) *</label>
+          <input class="form-control" id="intIdentificacion" name="identificacion" required maxlength="20"
+            pattern="\\d+" title="Solo dígitos numéricos"
+            value="${escapeHtml(integrante?.identificacion || '')}" placeholder="Ej. 1090123456" />
         </div>
+
         <div class="form-field form-field--full">
           <label class="form-label" for="intNombre">Nombre completo *</label>
           <input class="form-control" id="intNombre" name="nombre" required maxlength="160"
             value="${escapeHtml(integrante?.nombre || '')}" placeholder="Ej. Carlos Andrés Gómez" />
         </div>
+
+        <div class="form-field">
+          <label class="form-label" for="intSemestre">Semestre actual *</label>
+          <select class="form-control" id="intSemestre" name="semestreActual" required>
+            ${semestreOptions}
+          </select>
+        </div>
+
+        <div class="form-field">
+          <label class="form-label" for="intFechaNacimiento">Fecha de nacimiento *</label>
+          <input class="form-control" id="intFechaNacimiento" name="fechaNacimiento" type="date" required
+            value="${escapeHtml(initialFechaNac)}" />
+          <span id="intCalculatedAge" class="text-sm" style="margin-top: 4px; display: block; color: var(--text-secondary); font-weight: 500;">
+            ${integrante?.edad ? `Edad: ${integrante.edad} años (calculada automáticamente)` : 'Seleccione fecha para calcular edad'}
+          </span>
+        </div>
+
+        <div class="form-field">
+          <label class="form-label" for="intEmail">Correo electrónico *</label>
+          <input class="form-control" id="intEmail" name="email" type="email" required maxlength="160"
+            value="${escapeHtml(integrante?.email || '')}" placeholder="estudiante@ufps.edu.co" />
+        </div>
+
+        <div class="form-field">
+          <label class="form-label" for="intCelular">Celular de contacto *</label>
+          <input class="form-control" id="intCelular" name="celular" type="tel" required maxlength="20"
+            value="${escapeHtml(integrante?.celular || '')}" placeholder="Ej. 3123456789" />
+        </div>
+
+        <div class="form-field form-field--full">
+          <label class="form-label" for="intDireccion">Dirección de residencia *</label>
+          <input class="form-control" id="intDireccion" name="direccion" required maxlength="255"
+            value="${escapeHtml(integrante?.direccion || '')}" placeholder="Ej. Av. Gran Colombia # 12E-96, Cúcuta" />
+        </div>
+
         <div class="form-field form-field--full">
           <label class="checkbox-row">
             <input type="checkbox" name="esLider" ${integrante?.esLider ? 'checked' : ''} />
             <span><strong>Es líder del semillero</strong> (solo puede haber un líder activo por semillero)</span>
           </label>
         </div>
+
         <div class="form-field form-field--full" id="intFormError"></div>
       </form>
     `,
@@ -222,6 +390,34 @@ export function openIntegranteFormModal({ integrante = null, defaultSemilleroId 
       const form = backdrop.querySelector('#integranteForm');
       const errorBox = backdrop.querySelector('#intFormError');
       const saveBtn = backdrop.querySelector('#saveIntegranteBtn');
+      const dobInput = backdrop.querySelector('#intFechaNacimiento');
+      const ageLabel = backdrop.querySelector('#intCalculatedAge');
+
+      const updateAge = () => {
+        const val = dobInput?.value;
+        if (!val) {
+          if (ageLabel) ageLabel.textContent = 'Seleccione fecha para calcular edad';
+          return;
+        }
+        const birthDate = new Date(val + 'T00:00:00');
+        const today = new Date();
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const m = today.getMonth() - birthDate.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+          age--;
+        }
+        if (isNaN(age) || age < 0) {
+          if (ageLabel) ageLabel.textContent = 'Fecha de nacimiento inválida';
+        } else {
+          if (ageLabel) {
+            ageLabel.innerHTML = `<strong>Edad:</strong> ${age} años <span class="text-muted">(campo calculado transient)</span>`;
+          }
+        }
+      };
+
+      dobInput?.addEventListener('input', updateAge);
+      dobInput?.addEventListener('change', updateAge);
+      if (initialFechaNac) updateAge();
 
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -230,11 +426,26 @@ export function openIntegranteFormModal({ integrante = null, defaultSemilleroId 
         const formData = new FormData(form);
         const payload = {
           semilleroId: Number(formData.get('semilleroId')),
+          programaId: Number(formData.get('programaId')),
           codigo: String(formData.get('codigo') || '').trim(),
+          identificacion: String(formData.get('identificacion') || '').trim(),
           nombre: String(formData.get('nombre') || '').trim(),
-          programa: String(formData.get('programa') || '').trim(),
+          semestreActual: Number(formData.get('semestreActual')),
+          fechaNacimiento: String(formData.get('fechaNacimiento') || ''),
+          direccion: String(formData.get('direccion') || '').trim(),
+          email: String(formData.get('email') || '').trim().toLowerCase(),
+          celular: String(formData.get('celular') || '').trim(),
           esLider: Boolean(formData.get('esLider')),
         };
+
+        if (!payload.semilleroId) {
+          errorBox.innerHTML = '<div class="form-error">Debe seleccionar un semillero</div>';
+          return;
+        }
+        if (!payload.programaId) {
+          errorBox.innerHTML = '<div class="form-error">Debe seleccionar un programa académico</div>';
+          return;
+        }
 
         saveBtn.disabled = true;
         saveBtn.textContent = 'Guardando...';
@@ -261,6 +472,90 @@ export function openIntegranteFormModal({ integrante = null, defaultSemilleroId 
 }
 
 /**
+ * Muestra el perfil completo de un Integrante en un modal institucional.
+ */
+export function openIntegranteDetailModal(integrante) {
+  if (!integrante) return;
+
+  const semillero = store.semilleros.find((s) => Number(s.id) === Number(integrante.semilleroId));
+
+  openModal({
+    title: `Ficha de Integrante · ${escapeHtml(integrante.nombre)}`,
+    size: 'md',
+    bodyHtml: `
+      <div style="display: flex; flex-direction: column; gap: 20px;">
+        <div style="display: flex; align-items: center; gap: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border-color);">
+          <div class="avatar ${integrante.esLider ? 'avatar--leader' : ''}" style="width: 56px; height: 56px; font-size: 1.3rem;">
+            ${escapeHtml(getInitials(integrante.nombre))}
+          </div>
+          <div style="flex: 1;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <h2 style="font-size: 1.25rem; font-weight: 700; margin: 0; color: var(--text-primary);">${escapeHtml(integrante.nombre)}</h2>
+              ${
+                integrante.esLider
+                  ? '<span class="badge badge--leader">★ Líder del Semillero</span>'
+                  : '<span class="badge badge--member">Integrante</span>'
+              }
+            </div>
+            <p style="margin: 4px 0 0; color: var(--text-secondary); font-size: 0.9rem;">
+              Código: <strong>${escapeHtml(integrante.codigo)}</strong> &bull; Identificación: <strong>${escapeHtml(integrante.identificacion || 'No registrada')}</strong>
+            </p>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;">
+          <div style="background: var(--bg-page); padding: 14px 16px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+            <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 4px;">Programa Académico</span>
+            <strong style="color: var(--text-primary); font-size: 0.95rem;">${escapeHtml(integrante.programaNombre || 'No asignado')}</strong>
+          </div>
+
+          <div style="background: var(--bg-page); padding: 14px 16px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+            <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 4px;">Semestre Cursado</span>
+            <strong style="color: var(--text-primary); font-size: 0.95rem;">Semestre ${escapeHtml(String(integrante.semestreActual || 1))}</strong>
+          </div>
+
+          <div style="background: var(--bg-page); padding: 14px 16px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+            <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 4px;">Fecha Nacimiento y Edad</span>
+            <strong style="color: var(--text-primary); font-size: 0.95rem;">
+              ${escapeHtml(integrante.fechaNacimiento || 'Sin fecha')}
+              ${integrante.edad ? ` (${integrante.edad} años)` : ''}
+            </strong>
+          </div>
+
+          <div style="background: var(--bg-page); padding: 14px 16px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+            <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 4px;">Semillero Vinculado</span>
+            <strong style="color: var(--ufps-red-700); font-size: 0.95rem;">
+              ${escapeHtml(integrante.semilleroSigla || 'SEM')} — ${escapeHtml(integrante.semilleroNombre || '')}
+            </strong>
+          </div>
+        </div>
+
+        <div style="background: var(--bg-page); padding: 16px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+          <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 8px;">Información de Contacto y Residencia</span>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; font-size: 0.88rem;">
+            <div>
+              <span class="text-muted">Correo:</span><br />
+              <strong>${escapeHtml(integrante.email || 'Sin correo registrado')}</strong>
+            </div>
+            <div>
+              <span class="text-muted">Celular:</span><br />
+              <strong>${escapeHtml(integrante.celular || 'Sin celular registrado')}</strong>
+            </div>
+            <div style="grid-column: 1 / -1;">
+              <span class="text-muted">Dirección:</span><br />
+              <strong>${escapeHtml(integrante.direccion || 'Sin dirección registrada')}</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    `,
+    footerHtml: `
+      <button type="button" class="btn btn--secondary" data-modal-close>Cerrar</button>
+    `,
+  });
+}
+
+/**
  * Muestra la ficha rápida del semillero desde un integrante, con acceso directo a la vista detalle.
  */
 export function openSemilleroPreviewModal(semillero, integrante = null) {
@@ -276,6 +571,11 @@ export function openSemilleroPreviewModal(semillero, integrante = null) {
   openModal({
     title: `Semillero ${semillero.sigla}`,
     bodyHtml: `
+      ${semillero.fotoUrl
+        ? `<div style="text-align: center; margin-bottom: 16px;">
+             <img src="${escapeHtml(resolveImageUrl(semillero.fotoUrl))}" alt="${escapeHtml(semillero.nombre)}" style="max-height: 160px; max-width: 100%; border-radius: var(--radius-md); object-fit: cover; border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);" />
+           </div>`
+        : ''}
       ${
         integrante
           ? `<p class="text-sm text-muted" style="margin-bottom: 12px;">
@@ -288,7 +588,7 @@ export function openSemilleroPreviewModal(semillero, integrante = null) {
           <div class="info-block__label">Nombre y Grupo de Investigación</div>
           <div class="info-block__text">
             <strong>${escapeHtml(semillero.nombre)}</strong><br/>
-            ${escapeHtml(semillero.grupoInvestigacion)}
+            ${escapeHtml(semillero.grupoInvestigacion?.sigla ? `${semillero.grupoInvestigacion.sigla} · ${semillero.grupoInvestigacion.nombre}` : (semillero.grupoInvestigacion?.nombre || 'No asignado'))}
           </div>
         </div>
         <div class="info-block">

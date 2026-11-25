@@ -21,11 +21,13 @@ async function parseBody(response) {
 
 export async function request(path, options = {}) {
   const url = `${API_BASE_URL}${path}`;
+  const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
+  const headers = { ...(options.headers || {}) };
+  if (!isFormData && !headers['Content-Type']) {
+    headers['Content-Type'] = 'application/json';
+  }
   const config = {
-    headers: {
-      'Content-Type': 'application/json',
-      ...(options.headers || {}),
-    },
+    headers,
     ...options,
   };
 

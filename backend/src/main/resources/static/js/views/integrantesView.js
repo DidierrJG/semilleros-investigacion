@@ -6,6 +6,7 @@ import {
   escapeHtml,
   getInitials,
   openIntegranteFormModal,
+  openIntegranteDetailModal,
   openSemilleroPreviewModal,
   renderEmptyState,
 } from '../ui/components.js';
@@ -13,11 +14,12 @@ import {
 let filters = {
   query: '',
   semilleroId: '',
+  programaId: '',
   soloLideres: false,
 };
 
 export function renderIntegrantesView(container) {
-  const { integrantes, semilleros } = store;
+  const { integrantes, semilleros, programas } = store;
 
   const totalIntegrantes = integrantes.length;
   const totalLideres = integrantes.filter((i) => Boolean(i.esLider)).length;
@@ -28,22 +30,35 @@ export function renderIntegrantesView(container) {
       !q ||
       i.nombre.toLowerCase().includes(q) ||
       i.codigo.toLowerCase().includes(q) ||
-      i.programa.toLowerCase().includes(q) ||
+      (i.identificacion || '').toLowerCase().includes(q) ||
+      (i.programaNombre || '').toLowerCase().includes(q) ||
       (i.semilleroNombre || '').toLowerCase().includes(q) ||
-      (i.semilleroSigla || '').toLowerCase().includes(q);
+      (i.semilleroSigla || '').toLowerCase().includes(q) ||
+      (i.email || '').toLowerCase().includes(q) ||
+      (i.celular || '').toLowerCase().includes(q);
 
     const matchesSemillero =
       !filters.semilleroId || Number(i.semilleroId) === Number(filters.semilleroId);
 
+    const matchesPrograma =
+      !filters.programaId || Number(i.programaId) === Number(filters.programaId);
+
     const matchesLider = !filters.soloLideres || Boolean(i.esLider);
 
-    return matchesQuery && matchesSemillero && matchesLider;
+    return matchesQuery && matchesSemillero && matchesPrograma && matchesLider;
   });
 
   const semilleroOptions = semilleros
     .map(
       (s) =>
         `<option value="${s.id}" ${Number(filters.semilleroId) === Number(s.id) ? 'selected' : ''}>${escapeHtml(s.sigla)} — ${escapeHtml(s.nombre)}</option>`
+    )
+    .join('');
+
+  const programaOptions = (programas || [])
+    .map(
+      (p) =>
+        `<option value="${p.id}" ${Number(filters.programaId) === Number(p.id) ? 'selected' : ''}>${escapeHtml(p.nombre)}</option>`
     )
     .join('');
 
@@ -55,9 +70,10 @@ export function renderIntegrantesView(container) {
             <thead>
               <tr>
                 <th>Integrante</th>
-                <th>Código</th>
+                <th>Código & Semestre</th>
                 <th>Programa Académico</th>
                 <th>Semillero (clic para ver info)</th>
+                <th>Contacto & Edad</th>
                 <th>Rol</th>
                 <th style="text-align: right;">Acciones</th>
               </tr>
@@ -70,16 +86,43 @@ export function renderIntegrantesView(container) {
                   <td>
                     <div class="person-cell">
                       <div class="avatar ${i.esLider ? 'avatar--leader' : ''}">${escapeHtml(getInitials(i.nombre))}</div>
-                      <strong>${escapeHtml(i.nombre)}</strong>
+                      <div>
+                        <strong>${escapeHtml(i.nombre)}</strong>
+                        ${
+                          i.identificacion
+                            ? `<div class="text-xs text-muted">ID: ${escapeHtml(i.identificacion)}</div>`
+                            : ''
+                        }
+                      </div>
                     </div>
                   </td>
-                  <td><code>${escapeHtml(i.codigo)}</code></td>
-                  <td>${escapeHtml(i.programa)}</td>
+                  <td>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                      <code>${escapeHtml(i.codigo)}</code>
+                      <span class="badge" style="background: var(--bg-page); color: var(--text-secondary); font-size: 0.75rem; border: 1px solid var(--border-color);">
+                        Sem. ${i.semestreActual || 1}
+                      </span>
+                    </div>
+                  </td>
+                  <td>
+                    <strong>${escapeHtml(i.programaNombre || 'Sin asignar')}</strong>
+                  </td>
                   <td>
                     <button type="button" class="semillero-link-btn" data-view-semillero="${i.semilleroId}" data-integrante-id="${i.id}" title="Ver información del semillero">
-                      <span>${escapeHtml(i.semilleroSigla)}</span>
+                      <span>${escapeHtml(i.semilleroSigla || 'SEM')}</span>
                       <span class="text-muted" style="font-weight: 400;">· Ver info</span>
                     </button>
+                  </td>
+                  <td>
+                    <div style="font-size: 0.82rem; line-height: 1.35;">
+                      ${i.email ? `<div>✉️ ${escapeHtml(i.email)}</div>` : ''}
+                      ${i.celular ? `<div>📱 ${escapeHtml(i.celular)}</div>` : ''}
+                      ${
+                        i.edad
+                          ? `<div class="text-muted">🎂 <strong>${i.edad} años</strong> ${i.fechaNacimiento ? `(${i.fechaNacimiento})` : ''}</div>`
+                          : ''
+                      }
+                    </div>
                   </td>
                   <td>
                     ${
@@ -90,6 +133,7 @@ export function renderIntegrantesView(container) {
                   </td>
                   <td style="text-align: right;">
                     <div class="card-actions" style="justify-content: flex-end;">
+                      <button type="button" class="btn btn--soft-red btn--sm" data-view-profile="${i.id}" title="Ver ficha completa">Ver ficha</button>
                       <button type="button" class="btn btn--secondary btn--sm" data-edit-integrante="${i.id}">Editar</button>
                       <button type="button" class="btn btn--danger btn--sm" data-delete-integrante="${i.id}">Eliminar</button>
                     </div>
@@ -114,7 +158,7 @@ export function renderIntegrantesView(container) {
       <div class="page-header">
         <div>
           <h1 class="page-title">Integrantes de Semilleros</h1>
-          <p class="page-subtitle">Consulta el directorio completo, inspecciona la información de su semillero o actualiza sus datos.</p>
+          <p class="page-subtitle">Consulta el directorio completo, inspecciona la información de su semillero, programa académico o actualiza sus datos.</p>
         </div>
         <div class="page-actions">
           <button type="button" class="btn btn--primary" id="newIntegranteBtn">+ Nuevo Integrante</button>
@@ -145,12 +189,16 @@ export function renderIntegrantesView(container) {
         <div class="search-box">
           <span class="search-box__icon">🔍</span>
           <input type="search" class="search-box__input" id="intSearchInput"
-            placeholder="Buscar por nombre, código, programa o semillero..."
+            placeholder="Buscar por nombre, código, identificación, programa o semillero..."
             value="${escapeHtml(filters.query)}" />
         </div>
         <select class="filter-select" id="intSemilleroFilter" aria-label="Filtrar por semillero">
           <option value="">Todos los semilleros</option>
           ${semilleroOptions}
+        </select>
+        <select class="filter-select" id="intProgramaFilter" aria-label="Filtrar por programa académico">
+          <option value="">Todos los programas</option>
+          ${programaOptions}
         </select>
         <label class="checkbox-row" style="padding: 8px 12px;">
           <input type="checkbox" id="intLiderFilter" ${filters.soloLideres ? 'checked' : ''} />
@@ -212,6 +260,11 @@ export function renderIntegrantesView(container) {
     renderIntegrantesView(container);
   });
 
+  container.querySelector('#intProgramaFilter')?.addEventListener('change', (e) => {
+    filters.programaId = e.target.value;
+    renderIntegrantesView(container);
+  });
+
   container.querySelector('#intLiderFilter')?.addEventListener('change', (e) => {
     filters.soloLideres = e.target.checked;
     renderIntegrantesView(container);
@@ -225,6 +278,18 @@ export function renderIntegrantesView(container) {
         (item) => Number(item.id) === Number(btn.dataset.integranteId)
       );
       openSemilleroPreviewModal(semillero, integrante);
+    });
+  });
+
+  // Ver ficha completa del integrante
+  container.querySelectorAll('[data-view-profile]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const integrante = store.integrantes.find(
+        (item) => Number(item.id) === Number(btn.dataset.viewProfile)
+      );
+      if (integrante) {
+        openIntegranteDetailModal(integrante);
+      }
     });
   });
 
@@ -266,4 +331,3 @@ export function renderIntegrantesView(container) {
     });
   });
 }
-

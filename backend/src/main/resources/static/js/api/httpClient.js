@@ -21,11 +21,13 @@ async function parseBody(response) {
 
 export async function request(path, options = {}) {
   const url = `${API_BASE_URL}${path}`;
+  const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
+  const headers = { ...(options.headers || {}) };
+  if (!isFormData && !headers['Content-Type']) {
+    headers['Content-Type'] = 'application/json';
+  }
   const config = {
-    headers: {
-      'Content-Type': 'application/json',
-      ...(options.headers || {}),
-    },
+    headers,
     ...options,
   };
 
@@ -53,4 +55,14 @@ export async function request(path, options = {}) {
 
   return data;
 }
+
+export const httpClient = {
+  get: (path, options) => request(path, { method: 'GET', ...options }),
+  post: (path, body, options) =>
+    request(path, { method: 'POST', body: JSON.stringify(body), ...options }),
+  put: (path, body, options) =>
+    request(path, { method: 'PUT', body: JSON.stringify(body), ...options }),
+  delete: (path, options) => request(path, { method: 'DELETE', ...options }),
+};
+
 

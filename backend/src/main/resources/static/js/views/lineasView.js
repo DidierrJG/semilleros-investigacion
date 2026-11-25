@@ -65,6 +65,9 @@ export function renderLineasView(container) {
   const { lineas, semilleros } = store;
   const q = searchQuery.trim().toLowerCase();
 
+  const totalLineas = lineas.length;
+  const semillerosConLineas = semilleros.filter((s) => (s.lineas || []).length > 0).length;
+
   const filtered = lineas.filter(
     (l) => !q || l.nombre.toLowerCase().includes(q)
   );
@@ -132,6 +135,19 @@ export function renderLineasView(container) {
         </div>
         <div class="page-actions">
           <button type="button" class="btn btn--primary" id="newLineaBtn">+ Nueva Línea</button>
+        </div>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <span class="kpi-label">Total Líneas</span>
+          <span class="kpi-value">${totalLineas}</span>
+          <span class="kpi-hint">Áreas temáticas activas</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Semilleros Vinculados</span>
+          <span class="kpi-value">${semillerosConLineas}</span>
+          <span class="kpi-hint">Semilleros con líneas asignadas</span>
         </div>
       </div>
 
