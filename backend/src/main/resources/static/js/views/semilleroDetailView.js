@@ -290,6 +290,7 @@ export function renderSemilleroDetailView(container, semilleroId) {
         </div>
         <div class="hero-banner__actions">
           <a href="#/semilleros" class="btn btn--white-outline btn--sm">← Volver</a>
+          <a href="semillero-publico.html?id=${semillero.id}" target="_blank" rel="noopener" class="btn btn--white-outline btn--sm" title="Abrir página pública del semillero">🌐 Página pública</a>
           <button type="button" class="btn btn--white-outline btn--sm" id="editSemilleroDetailBtn">Editar semillero</button>
           <button type="button" class="btn btn--primary btn--sm" id="addIntegranteDetailBtn">+ Agregar integrante</button>
         </div>
