@@ -9,6 +9,8 @@ import { renderCapacitacionesView } from './views/capacitacionesView.js';
 import { renderDirectoresView } from './views/directoresView.js';
 import { renderLineasView } from './views/lineasView.js';
 import { renderTiposActividadView } from './views/tiposActividadView.js';
+import { renderGruposInvestigacionView } from './views/gruposInvestigacionView.js';
+import { renderProgramasView } from './views/programasView.js';
 
 function updateNavActive(routeKey) {
   document.querySelectorAll('.nav-link[data-route]').forEach((link) => {
@@ -93,6 +95,13 @@ export function renderCurrentRoute() {
     renderCapacitacionesView(container);
     return;
   }
+  
+  if (section === 'grupos-investigacion') {
+    updateNavActive('grupos-investigacion');
+    updateBreadcrumb([{ label: 'Grupos de Investigación UFPS' }]);
+    renderGruposInvestigacionView(container);
+    return;
+  }
 
   if (section === 'lineas') {
     updateNavActive('lineas');
@@ -112,6 +121,13 @@ export function renderCurrentRoute() {
     updateNavActive('directores');
     updateBreadcrumb([{ label: 'Directores de Semilleros' }]);
     renderDirectoresView(container);
+    return;
+  }
+
+  if (section === 'programas') {
+    updateNavActive('programas');
+    updateBreadcrumb([{ label: 'Programas Académicos UFPS' }]);
+    renderProgramasView(container);
     return;
   }
 

@@ -12,12 +12,13 @@ let filters = {
   query: '',
   lineaId: '',
   directorId: '',
+  grupoId: '',
 };
 
 let viewMode = 'table'; // 'table' | 'cards'
 
 export function renderSemillerosView(container) {
-  const { semilleros, integrantes, lineas, directores } = store;
+  const { semilleros, integrantes, lineas, directores, gruposInvestigacion } = store;
 
   const filtered = semilleros.filter((s) => {
     const q = filters.query.trim().toLowerCase();
@@ -25,7 +26,8 @@ export function renderSemillerosView(container) {
       !q ||
       s.nombre.toLowerCase().includes(q) ||
       s.sigla.toLowerCase().includes(q) ||
-      s.grupoInvestigacion.toLowerCase().includes(q) ||
+      (s.grupoInvestigacion?.nombre || '').toLowerCase().includes(q) ||
+      (s.grupoInvestigacion?.sigla || '').toLowerCase().includes(q) ||
       (s.director?.nombre || '').toLowerCase().includes(q);
 
     const matchesLinea =
@@ -36,7 +38,11 @@ export function renderSemillerosView(container) {
       !filters.directorId ||
       Number(s.director?.id) === Number(filters.directorId);
 
-    return matchesQuery && matchesLinea && matchesDirector;
+    const matchesGrupo =
+      !filters.grupoId ||
+      Number(s.grupoInvestigacion?.id) === Number(filters.grupoId);
+
+    return matchesQuery && matchesLinea && matchesDirector && matchesGrupo;
   });
 
   const lineaOptions = lineas
@@ -50,6 +56,13 @@ export function renderSemillerosView(container) {
     .map(
       (d) =>
         `<option value="${d.id}" ${Number(filters.directorId) === Number(d.id) ? 'selected' : ''}>${escapeHtml(d.nombre)}</option>`
+    )
+    .join('');
+
+  const grupoOptions = (gruposInvestigacion || [])
+    .map(
+      (g) =>
+        `<option value="${g.id}" ${Number(filters.grupoId) === Number(g.id) ? 'selected' : ''}>${escapeHtml(g.sigla)} - ${escapeHtml(g.nombre)}</option>`
     )
     .join('');
 
@@ -82,7 +95,9 @@ export function renderSemillerosView(container) {
                 <h2 class="semillero-card__title" data-action="open" data-id="${s.id}">
                   ${escapeHtml(s.nombre)}
                 </h2>
-                <p class="semillero-card__group">${escapeHtml(s.grupoInvestigacion)}</p>
+                <p class="semillero-card__group">
+                  ${s.grupoInvestigacion?.sigla ? `<span class="badge badge--neutral">${escapeHtml(s.grupoInvestigacion.sigla)}</span> ` : ''}${escapeHtml(s.grupoInvestigacion?.nombre || 'Grupo no asignado')}
+                </p>
               </div>
 
               <div class="semillero-card__meta">
@@ -100,9 +115,14 @@ export function renderSemillerosView(container) {
 
               <div class="semillero-card__footer">
                 <span class="text-sm text-muted">${(s.lineas || []).length} línea(s)</span>
-                <a href="#/semilleros/${s.id}" class="btn btn--soft-red btn--sm">
-                  Ver líneas e integrantes →
-                </a>
+                <div style="display: flex; gap: 6px; align-items: center;">
+                  <button type="button" class="btn btn--sm" data-action="export-excel" data-id="${s.id}" style="background: #107c41; color: #ffffff; border: 1px solid #0e6b37; font-weight: 600; padding: 4px 10px;" title="Descargar Formato Actualización (Excel)">
+                    📊 Excel
+                  </button>
+                  <a href="#/semilleros/${s.id}" class="btn btn--soft-red btn--sm">
+                    Ver líneas e integrantes →
+                  </a>
+                </div>
               </div>
             </article>
           `;
@@ -140,7 +160,9 @@ export function renderSemillerosView(container) {
                         <strong style="cursor: pointer;" data-action="open" data-id="${s.id}">
                           ${escapeHtml(s.nombre)}
                         </strong>
-                        <div class="text-sm text-muted">${escapeHtml(s.grupoInvestigacion)}</div>
+                        <div class="text-sm text-muted">
+                          ${escapeHtml(s.grupoInvestigacion?.sigla ? `${s.grupoInvestigacion.sigla} · ${s.grupoInvestigacion.nombre}` : (s.grupoInvestigacion?.nombre || ''))}
+                        </div>
                       </div>
                     </div>
                   </td>
@@ -156,6 +178,9 @@ export function renderSemillerosView(container) {
                   </td>
                   <td style="text-align: right;">
                     <div class="card-actions" style="justify-content: flex-end;">
+                      <button type="button" class="btn btn--sm" data-action="export-excel" data-id="${s.id}" style="background: #107c41; color: #ffffff; border: 1px solid #0e6b37; font-weight: 600; padding: 4px 10px;" title="Descargar Formato Actualización (Excel)">
+                        📊 Excel
+                      </button>
                       <a href="#/semilleros/${s.id}" class="btn btn--soft-red btn--sm" title="Ver líneas e integrantes">
                         Ver detalle →
                       </a>
@@ -237,6 +262,10 @@ export function renderSemillerosView(container) {
           <option value="">Todos los directores</option>
           ${directorOptions}
         </select>
+        <select class="filter-select" id="semGrupoFilter" aria-label="Filtrar por grupo de investigación">
+          <option value="">Todos los grupos</option>
+          ${grupoOptions}
+        </select>
         <div class="view-toggle" role="group" aria-label="Modo de visualización">
           <button type="button" class="view-toggle__btn ${viewMode === 'cards' ? 'is-active' : ''}" data-view-mode="cards">Tarjetas</button>
           <button type="button" class="view-toggle__btn ${viewMode === 'table' ? 'is-active' : ''}" data-view-mode="table">Tabla</button>
@@ -277,6 +306,11 @@ export function renderSemillerosView(container) {
     renderSemillerosView(container);
   });
 
+  container.querySelector('#semGrupoFilter')?.addEventListener('change', (e) => {
+    filters.grupoId = e.target.value;
+    renderSemillerosView(container);
+  });
+
   container.querySelectorAll('[data-view-mode]').forEach((btn) => {
     btn.addEventListener('click', () => {
       const nextMode = btn.dataset.viewMode;
@@ -287,7 +321,34 @@ export function renderSemillerosView(container) {
     });
   });
 
-  // Acciones en tarjetas
+  // Acciones en tarjetas y tabla
+  container.querySelectorAll('[data-action="export-excel"]').forEach((btn) => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const semilleroId = Number(btn.dataset.id);
+      const originalText = btn.innerHTML;
+      try {
+        btn.disabled = true;
+        btn.innerHTML = '⏳ ...';
+        const { blob, filename } = await semillerosApi.exportarActualizacion(semilleroId);
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const tempLink = document.createElement('a');
+        tempLink.href = downloadUrl;
+        tempLink.download = filename;
+        document.body.appendChild(tempLink);
+        tempLink.click();
+        tempLink.remove();
+        window.URL.revokeObjectURL(downloadUrl);
+        showToast('Formato de actualización descargado con éxito', 'success');
+      } catch (err) {
+        showToast(err.message || 'Error al descargar Excel', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+      }
+    });
+  });
+
   container.querySelectorAll('[data-action="open"]').forEach((el) => {
     el.addEventListener('click', () => {
       window.location.hash = `#/semilleros/${el.dataset.id}`;

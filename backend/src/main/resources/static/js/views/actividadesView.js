@@ -20,6 +20,20 @@ let viewMode = 'table'; // 'table' | 'cards'
 export function renderActividadesView(container) {
   const { actividades, semilleros, tiposActividad } = store;
 
+  const totalActividades = actividades.length;
+  const promedioCumplimiento = actividades.length
+    ? Math.round(
+        actividades.reduce((acc, cur) => acc + (cur.porcentajeCumplimiento || 0), 0) /
+          actividades.length
+      )
+    : 0;
+  const semillerosActivos = new Set(
+    actividades.map((a) => Number(a.semilleroId)).filter(Boolean)
+  ).size;
+  const tiposUtilizados = new Set(
+    actividades.map((a) => Number(a.tipoActividadId)).filter(Boolean)
+  ).size;
+
   const filtered = actividades.filter((a) => {
     const q = filters.query.trim().toLowerCase();
     const matchesQuery =
@@ -172,6 +186,29 @@ export function renderActividadesView(container) {
         </div>
         <div class="page-actions">
           <button type="button" class="btn btn--primary" id="newActividadBtn">+ Nueva Actividad</button>
+        </div>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <span class="kpi-label">Total Actividades</span>
+          <span class="kpi-value">${totalActividades}</span>
+          <span class="kpi-hint">Eventos y espacios registrados</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Tipos de Actividad</span>
+          <span class="kpi-value">${tiposUtilizados}</span>
+          <span class="kpi-hint">Modalidades ejecutadas</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Promedio Cumplimiento</span>
+          <span class="kpi-value">${promedioCumplimiento}%</span>
+          <span class="kpi-hint">Nivel de ejecución promedio</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Semilleros Participantes</span>
+          <span class="kpi-value">${semillerosActivos}</span>
+          <span class="kpi-hint">Grupos con actividades registradas</span>
         </div>
       </div>
 

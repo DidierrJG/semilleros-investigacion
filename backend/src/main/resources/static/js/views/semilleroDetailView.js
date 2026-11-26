@@ -92,7 +92,7 @@ export function renderSemilleroDetailView(container, semilleroId) {
                   </div>
                 </td>
                 <td><code>${escapeHtml(i.codigo)}</code></td>
-                <td>${escapeHtml(i.programa)}</td>
+                <td>${escapeHtml(i.programaNombre || i.programa || '')}</td>
                 <td>
                   ${
                     i.esLider
@@ -283,12 +283,16 @@ export function renderSemilleroDetailView(container, semilleroId) {
           <span class="hero-banner__sigla">${escapeHtml(semillero.sigla)}</span>
           <h1 class="hero-banner__title">${escapeHtml(semillero.nombre)}</h1>
           <p class="hero-banner__subtitle">
-            ${escapeHtml(semillero.grupoInvestigacion)} · Director: <strong>${escapeHtml(semillero.director?.nombre || 'No asignado')}</strong>
+            ${semillero.grupoInvestigacion?.sigla ? `<strong>${escapeHtml(semillero.grupoInvestigacion.sigla)}</strong> · ${escapeHtml(semillero.grupoInvestigacion.nombre)}` : escapeHtml(semillero.grupoInvestigacion?.nombre || 'Sin grupo')}
+            · Director: <strong>${escapeHtml(semillero.director?.nombre || 'No asignado')}</strong>
             ${semillero.director?.correo ? `(${escapeHtml(semillero.director.correo)})` : ''}
           </p>
         </div>
         <div class="hero-banner__actions">
           <a href="#/semilleros" class="btn btn--white-outline btn--sm">← Volver</a>
+          <button type="button" class="btn btn--sm" id="exportExcelBtn" style="background: #107c41; color: #ffffff; border: 1px solid #0e6b37; font-weight: 700; box-shadow: 0 2px 6px rgba(0,0,0,0.25); display: inline-flex; align-items: center; gap: 6px;">
+            📊 Descargar Formato Actualización (Excel)
+          </button>
           <button type="button" class="btn btn--white-outline btn--sm" id="editSemilleroDetailBtn">Editar semillero</button>
           <button type="button" class="btn btn--primary btn--sm" id="addIntegranteDetailBtn">+ Agregar integrante</button>
         </div>
@@ -300,6 +304,16 @@ export function renderSemilleroDetailView(container, semilleroId) {
             <h2 class="panel__title">Identidad y Propósito</h2>
           </div>
           <div class="info-blocks">
+            <div class="info-block">
+              <div class="info-block__label">Grupo de Investigación UFPS</div>
+              <div class="info-block__text">
+                <strong>${escapeHtml(semillero.grupoInvestigacion?.sigla || '')} - ${escapeHtml(semillero.grupoInvestigacion?.nombre || 'No asignado')}</strong>
+                ${semillero.grupoInvestigacion?.codigoMinciencias ? `<br/><span class="text-sm text-muted">Cód. Minciencias: <strong>${escapeHtml(semillero.grupoInvestigacion.codigoMinciencias)}</strong> · Categoría: <strong>${escapeHtml(semillero.grupoInvestigacion.categoria)}</strong></span>` : ''}
+                ${semillero.grupoInvestigacion?.facultad ? `<br/><span class="text-sm text-muted">${escapeHtml(semillero.grupoInvestigacion.facultad)} · Dpto. ${escapeHtml(semillero.grupoInvestigacion.departamento)}</span>` : ''}
+                ${semillero.grupoInvestigacion?.lider ? `<br/><span class="text-sm text-muted">Líder: ${escapeHtml(semillero.grupoInvestigacion.lider)} (${escapeHtml(semillero.grupoInvestigacion.correo)})</span>` : ''}
+                ${semillero.grupoInvestigacion?.sitioWeb ? `<br/><a href="${escapeHtml(semillero.grupoInvestigacion.sitioWeb)}" target="_blank" rel="noopener noreferrer" class="text-sm" style="color: var(--primary-color);">Ver GrupLAC / Sitio Web ↗</a>` : ''}
+              </div>
+            </div>
             <div class="info-block">
               <div class="info-block__label">Misión</div>
               <div class="info-block__text">${escapeHtml(semillero.mision || 'No registrada')}</div>
@@ -324,9 +338,14 @@ export function renderSemilleroDetailView(container, semilleroId) {
         </div>
 
         <div class="panel panel--span-12" style="padding: 0; overflow: hidden;">
-          <div class="panel__header" style="padding: 18px 20px 14px; margin-bottom: 0; border-bottom: 1px solid var(--border-color);">
+          <div class="panel__header" style="padding: 18px 20px 14px; margin-bottom: 0; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
             <h2 class="panel__title">Integrantes del Semillero (${integrantes.length})</h2>
-            <button type="button" class="btn btn--primary btn--sm" id="addIntegranteTableBtn">+ Nuevo integrante</button>
+            <div style="display: flex; gap: 8px;">
+              <button type="button" class="btn btn--sm" id="exportExcelTableBtn" style="background: #107c41; color: #ffffff; border: 1px solid #0e6b37; font-weight: 600;">
+                📊 Descargar Formato Excel
+              </button>
+              <button type="button" class="btn btn--primary btn--sm" id="addIntegranteTableBtn">+ Nuevo integrante</button>
+            </div>
           </div>
           ${integrantesRowsHtml}
         </div>
@@ -357,6 +376,36 @@ export function renderSemilleroDetailView(container, semilleroId) {
       </div>
     </section>
   `;
+
+  // Descargar Formato Actualización (Excel)
+  const handleExportExcel = async (btn) => {
+    const originalText = btn.innerHTML;
+    try {
+      btn.disabled = true;
+      btn.innerHTML = '⏳ Generando Excel...';
+
+      const { blob, filename } = await semillerosApi.exportarActualizacion(semillero.id);
+
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const tempLink = document.createElement('a');
+      tempLink.href = downloadUrl;
+      tempLink.download = filename;
+      document.body.appendChild(tempLink);
+      tempLink.click();
+      tempLink.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+
+      showToast('Formato de actualización descargado con éxito', 'success');
+    } catch (err) {
+      showToast(err.message || 'Error al descargar el archivo Excel', 'error');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = originalText;
+    }
+  };
+
+  container.querySelector('#exportExcelBtn')?.addEventListener('click', (e) => handleExportExcel(e.currentTarget));
+  container.querySelector('#exportExcelTableBtn')?.addEventListener('click', (e) => handleExportExcel(e.currentTarget));
 
   // Editar semillero
   container.querySelector('#editSemilleroDetailBtn')?.addEventListener('click', () => {
