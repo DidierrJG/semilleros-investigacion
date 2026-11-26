@@ -10,6 +10,9 @@ export function renderTiposActividadView(container) {
   const { tiposActividad, actividades } = store;
   const q = searchQuery.trim().toLowerCase();
 
+  const totalTipos = tiposActividad.length;
+  const totalActividades = actividades.length;
+
   const filtered = tiposActividad.filter(
     (t) => !q || t.nombre.toLowerCase().includes(q)
   );
@@ -68,6 +71,19 @@ export function renderTiposActividadView(container) {
         </div>
         <div class="page-actions">
           <button type="button" class="btn btn--primary" id="newTipoBtn">+ Nuevo Tipo de Actividad</button>
+        </div>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <span class="kpi-label">Total Tipos</span>
+          <span class="kpi-value">${totalTipos}</span>
+          <span class="kpi-hint">Categorías para eventos</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Actividades Registradas</span>
+          <span class="kpi-value">${totalActividades}</span>
+          <span class="kpi-hint">Eventos clasificados en el sistema</span>
         </div>
       </div>
 

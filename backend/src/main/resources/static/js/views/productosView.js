@@ -21,6 +21,16 @@ let viewMode = 'cards'; // 'cards' | 'table'
 export function renderProductosView(container) {
   const { productos, semilleros, tiposProducto } = store;
 
+  const totalProductos = productos.length;
+  const categoriasCount = new Set(productos.map((p) => p.tipoCategoria).filter(Boolean)).size;
+  const totalParticipantes = productos.reduce(
+    (acc, cur) => acc + ((cur.integrantes || []).length || 0),
+    0
+  );
+  const semillerosConProductos = new Set(
+    productos.map((p) => Number(p.semilleroId)).filter(Boolean)
+  ).size;
+
   const categorias = Array.from(new Set((tiposProducto || []).map((t) => t.categoria)));
 
   const filtered = productos.filter((p) => {
@@ -189,6 +199,29 @@ export function renderProductosView(container) {
         </div>
         <div class="page-actions">
           <button type="button" class="btn btn--primary" id="newProductoBtn">+ Nuevo Producto</button>
+        </div>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <span class="kpi-label">Total Productos</span>
+          <span class="kpi-value">${totalProductos}</span>
+          <span class="kpi-hint">Resultados de investigación</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Categorías Minciencias</span>
+          <span class="kpi-value">${categoriasCount}</span>
+          <span class="kpi-hint">Tipologías oficiales aplicadas</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Participantes Vinculados</span>
+          <span class="kpi-value">${totalParticipantes}</span>
+          <span class="kpi-hint">Integrantes y líderes coautores</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Semilleros Productivos</span>
+          <span class="kpi-value">${semillerosConProductos}</span>
+          <span class="kpi-hint">Semilleros con productos</span>
         </div>
       </div>
 
