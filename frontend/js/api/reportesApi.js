@@ -14,7 +14,8 @@ export const reportesApi = {
    */
   async descargarReporteFoIn14(semilleroId, periodo = '') {
     const params = periodo ? `?periodo=${encodeURIComponent(periodo)}` : '';
-    const url = `${API_BASE_URL}/api/reportes/semilleros/${semilleroId}/fo-in-14${params}`;
+    const baseUrl = API_BASE_URL.replace(/\/api\/?$/, '');
+    const url = `${baseUrl}/api/reportes/semilleros/${semilleroId}/fo-in-14${params}`;
 
     let response;
     try {

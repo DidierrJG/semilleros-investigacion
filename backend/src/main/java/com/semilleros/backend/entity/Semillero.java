@@ -52,6 +52,9 @@ public class Semillero {
     @Column(name = "objetivo_general", columnDefinition = "TEXT")
     private String objetivoGeneral;
 
+    @Column(name = "logo_url", length = 300)
+    private String logoUrl;
+
     @Column(name = "foto_url", length = 500)
     private String fotoUrl;
 
@@ -60,12 +63,7 @@ public class Semillero {
     private Director director;
 
     @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "semillero_lineas",
-            joinColumns = @JoinColumn(name = "semillero_id"),
-            inverseJoinColumns = @JoinColumn(name = "linea_id")
-    )
+    @JoinTable(name = "semillero_lineas", joinColumns = @JoinColumn(name = "semillero_id"), inverseJoinColumns = @JoinColumn(name = "linea_id"))
     @Builder.Default
     private Set<Linea> lineas = new HashSet<>();
 }
-

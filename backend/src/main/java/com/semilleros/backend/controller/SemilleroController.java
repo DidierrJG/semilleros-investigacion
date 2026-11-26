@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -92,6 +93,20 @@ public class SemilleroController {
             @PathVariable Long semilleroId,
             @PathVariable Long lineaId) {
         return ResponseEntity.ok(semilleroService.removeLinea(semilleroId, lineaId));
+    }
+
+    @PostMapping(value = "/{id}/logo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Subir logo del semillero", description = "Carga y asocia una imagen de logo para el semillero en el almacenamiento configurado")
+    public ResponseEntity<SemilleroResponseDTO> uploadLogo(
+            @PathVariable Long id,
+            @RequestParam("file") MultipartFile file) {
+        return ResponseEntity.ok(semilleroService.uploadLogo(id, file));
+    }
+
+    @GetMapping("/{id}/logo")
+    @Operation(summary = "Obtener logo del semillero", description = "Descarga o visualiza directamente el archivo binario del logo del semillero")
+    public ResponseEntity<Resource> getLogo(@PathVariable Long id) {
+        return semilleroService.getLogo(id);
     }
 }
 

@@ -45,6 +45,9 @@ public class SemilleroRequestDTO {
     @Schema(description = "Identificador del director responsable", example = "1")
     private Long directorId;
 
+    @Schema(description = "URL o ruta de acceso al logo del semillero", example = "/api/semilleros/1/logo")
+    private String logoUrl;
+
     @Schema(description = "URL o ruta de la foto del semillero", example = "/uploads/semilleros/siaa.jpg")
     @Size(max = 500, message = "La URL de la foto no puede superar los 500 caracteres")
     private String fotoUrl;
@@ -52,4 +55,3 @@ public class SemilleroRequestDTO {
     @Schema(description = "IDs de las líneas de investigación asociadas al semillero", example = "[1, 2]")
     private Set<Long> lineaIds;
 }
-

@@ -18,4 +18,18 @@ public class ProgramaAcademicoResponseDTO {
 
     @Schema(description = "Nombre del programa académico", example = "Ingeniería de Sistemas")
     private String nombre;
+
+    @Schema(description = "Facultad a la que pertenece el programa")
+    private FacultadSummaryDTO facultad;
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Schema(description = "Resumen de facultad en programa")
+    public static class FacultadSummaryDTO {
+        private Long id;
+        private String nombre;
+        private String sigla;
+    }
 }
