@@ -3,20 +3,12 @@ import { facultadesApi } from '../api/facultadesApi.js';
 import { openModal, closeModal, confirmDialog } from '../ui/modal.js';
 import { showToast } from '../ui/toast.js';
 import { escapeHtml, renderEmptyState } from '../ui/components.js';
+import { renderPersonaSearchSelectHtml, setupPersonaSearchSelect } from '../ui/personaSearchSelect.js';
 
 let searchQuery = '';
 
 function openFacultadModal(facultad = null, onSaved = null) {
   const isEdit = Boolean(facultad);
-
-  const personaOptions = (store.personas || [])
-    .map(
-      (p) => `
-      <option value="${p.id}" ${Number(facultad?.representante?.id) === Number(p.id) ? 'selected' : ''}>
-        ${escapeHtml(p.nombreCompleto || p.nombres + ' ' + p.apellidos)} (${escapeHtml(p.correo)})
-      </option>`
-    )
-    .join('');
 
   openModal({
     title: isEdit ? `Editar Facultad · ${facultad.sigla}` : 'Nueva Facultad UFPS',
@@ -34,11 +26,14 @@ function openFacultadModal(facultad = null, onSaved = null) {
             value="${escapeHtml(facultad?.sigla || '')}" placeholder="Ej. FING" />
         </div>
         <div class="form-field form-field--full">
-          <label class="form-label" for="facRepresentante">Representante de Facultad ante Investigación</label>
-          <select class="form-control" id="facRepresentante" name="representanteId">
-            <option value="">Sin representante asignado</option>
-            ${personaOptions}
-          </select>
+          <label class="form-label" for="facRepresentanteId">Representante de Facultad ante Investigación</label>
+          ${renderPersonaSearchSelectHtml({
+            inputName: 'representanteId',
+            inputId: 'facRepresentanteId',
+            selectedPersonaId: facultad?.representante?.id,
+            placeholder: 'Buscar representante por nombre o correo...',
+            emptyLabel: 'Sin representante asignado',
+          })}
           <span class="text-xs text-muted" style="margin-top: 4px;">Docente investigador designado como representante</span>
         </div>
         <div class="form-field form-field--full" id="facFormError"></div>
@@ -54,6 +49,10 @@ function openFacultadModal(facultad = null, onSaved = null) {
       const form = backdrop.querySelector('#facultadForm');
       const errorBox = backdrop.querySelector('#facFormError');
       const saveBtn = backdrop.querySelector('#saveFacBtn');
+
+      setupPersonaSearchSelect(backdrop.querySelector('[data-persona-select="facRepresentanteId"]'), {
+        emptyLabel: 'Sin representante asignado',
+      });
 
       form.addEventListener('submit', async (e) => {
         e.preventDefault();

@@ -3,6 +3,7 @@ import { departamentosApi } from '../api/departamentosApi.js';
 import { openModal, closeModal, confirmDialog } from '../ui/modal.js';
 import { showToast } from '../ui/toast.js';
 import { escapeHtml, renderEmptyState } from '../ui/components.js';
+import { renderPersonaSearchSelectHtml, setupPersonaSearchSelect } from '../ui/personaSearchSelect.js';
 
 let searchQuery = '';
 let filterFacultadId = '';
@@ -15,15 +16,6 @@ function openDepartamentoModal(departamento = null, onSaved = null) {
       (f) => `
       <option value="${f.id}" ${Number(departamento?.facultad?.id) === Number(f.id) ? 'selected' : ''}>
         ${escapeHtml(f.sigla)} - ${escapeHtml(f.nombre)}
-      </option>`
-    )
-    .join('');
-
-  const personaOptions = (store.personas || [])
-    .map(
-      (p) => `
-      <option value="${p.id}" ${Number(departamento?.director?.id) === Number(p.id) ? 'selected' : ''}>
-        ${escapeHtml(p.nombreCompleto || p.nombres + ' ' + p.apellidos)} (${escapeHtml(p.correo)})
       </option>`
     )
     .join('');
@@ -46,11 +38,14 @@ function openDepartamentoModal(departamento = null, onSaved = null) {
           </select>
         </div>
         <div class="form-field form-field--full">
-          <label class="form-label" for="depDirector">Director del Departamento</label>
-          <select class="form-control" id="depDirector" name="directorId">
-            <option value="">Sin director asignado</option>
-            ${personaOptions}
-          </select>
+          <label class="form-label" for="depDirectorId">Director del Departamento</label>
+          ${renderPersonaSearchSelectHtml({
+            inputName: 'directorId',
+            inputId: 'depDirectorId',
+            selectedPersonaId: departamento?.director?.id,
+            placeholder: 'Buscar director por nombre o correo...',
+            emptyLabel: 'Sin director asignado',
+          })}
           <span class="text-xs text-muted" style="margin-top: 4px;">Director responsable de avalar semilleros y firmar formatos</span>
         </div>
         <div class="form-field form-field--full" id="depFormError"></div>
@@ -66,6 +61,10 @@ function openDepartamentoModal(departamento = null, onSaved = null) {
       const form = backdrop.querySelector('#deptoForm');
       const errorBox = backdrop.querySelector('#depFormError');
       const saveBtn = backdrop.querySelector('#saveDepBtn');
+
+      setupPersonaSearchSelect(backdrop.querySelector('[data-persona-select="depDirectorId"]'), {
+        emptyLabel: 'Sin director asignado',
+      });
 
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
