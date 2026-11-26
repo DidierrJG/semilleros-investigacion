@@ -1,4 +1,5 @@
 import { store, loadAllData, getIntegrantesBySemillero } from '../state/store.js';
+import { resolveFileUrl } from '../config.js';
 import { semillerosApi } from '../api/semillerosApi.js';
 import { confirmDialog } from '../ui/modal.js';
 import { showToast } from '../ui/toast.js';
@@ -80,7 +81,7 @@ export function renderSemillerosView(container) {
               <div class="semillero-card__header">
                 <div style="display: flex; align-items: center; gap: 10px;">
                   ${s.logoUrl
-            ? `<img src="${escapeHtml(s.logoUrl)}" alt="${escapeHtml(s.sigla)}" style="width: 36px; height: 36px; object-fit: contain; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: #fff; padding: 2px;" />`
+            ? `<img src="${escapeHtml(resolveFileUrl(s.logoUrl))}" alt="${escapeHtml(s.sigla)}" style="width: 36px; height: 36px; object-fit: contain; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: #fff; padding: 2px;" />`
             : ''
           }
                   <span class="sigla-badge">${escapeHtml(s.sigla)}</span>
@@ -155,7 +156,7 @@ export function renderSemillerosView(container) {
                   <td>
                     <div style="display: flex; align-items: center; gap: 10px;">
                       ${s.logoUrl
-            ? `<img src="${escapeHtml(s.logoUrl)}" alt="${escapeHtml(s.sigla)}" style="width: 34px; height: 34px; object-fit: contain; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: #fff; padding: 2px; flex-shrink: 0;" />`
+            ? `<img src="${escapeHtml(resolveFileUrl(s.logoUrl))}" alt="${escapeHtml(s.sigla)}" style="width: 34px; height: 34px; object-fit: contain; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: #fff; padding: 2px; flex-shrink: 0;" />`
             : ''
           }
                       <span class="sigla-badge">${escapeHtml(s.sigla)}</span>

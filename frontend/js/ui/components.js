@@ -1,4 +1,5 @@
 import { store, loadAllData, getIntegrantesBySemillero } from '../state/store.js';
+import { resolveFileUrl } from '../config.js';
 import { semillerosApi } from '../api/semillerosApi.js';
 import { integrantesApi } from '../api/integrantesApi.js';
 import { productosApi } from '../api/productosApi.js';
@@ -113,7 +114,7 @@ export function openSemilleroFormModal(semillero = null, onSaved = null) {
           <div style="display: flex; align-items: center; gap: 16px;">
             <div id="semLogoPreviewContainer" style="width: 64px; height: 64px; border-radius: var(--radius-sm); border: 1px dashed var(--border-strong); display: flex; align-items: center; justify-content: center; overflow: hidden; background: var(--bg-page);">
               ${semillero?.logoUrl
-        ? `<img src="${escapeHtml(semillero.logoUrl)}" id="semLogoImgPreview" style="width: 100%; height: 100%; object-fit: contain;" />`
+        ? `<img src="${escapeHtml(resolveFileUrl(semillero.logoUrl))}" id="semLogoImgPreview" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.onerror=null; this.parentElement.innerHTML='<span style=\\'font-size: 0.75rem; color: var(--text-muted); text-align: center;\\'>Sin logo</span>';" />`
         : `<span id="semLogoTextPreview" style="font-size: 0.75rem; color: var(--text-muted); text-align: center;">Sin logo</span>`
       }
             </div>
@@ -529,7 +530,7 @@ export function openSemilleroPreviewModal(semillero, integrante = null) {
     bodyHtml: `
       ${semillero.logoUrl
         ? `<div style="text-align: center; margin-bottom: 16px;">
-              <img src="${escapeHtml(semillero.logoUrl)}" alt="${escapeHtml(semillero.sigla)}" style="max-height: 75px; max-width: 160px; object-fit: contain; border-radius: var(--radius-sm); border: 1px solid var(--border-color); padding: 4px; background: #fff; box-shadow: var(--shadow-xs);" />
+              <img src="${escapeHtml(resolveFileUrl(semillero.logoUrl))}" alt="${escapeHtml(semillero.sigla)}" style="max-height: 75px; max-width: 160px; object-fit: contain; border-radius: var(--radius-sm); border: 1px solid var(--border-color); padding: 4px; background: #fff; box-shadow: var(--shadow-xs);" />
             </div>`
         : ''
       }

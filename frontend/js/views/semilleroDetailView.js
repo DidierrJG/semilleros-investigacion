@@ -7,6 +7,7 @@ import {
   getActividadesBySemillero,
   getCapacitacionesBySemillero,
 } from '../state/store.js';
+import { resolveFileUrl } from '../config.js';
 import { semillerosApi } from '../api/semillerosApi.js';
 import { integrantesApi } from '../api/integrantesApi.js';
 import { productosApi } from '../api/productosApi.js';
@@ -280,7 +281,7 @@ export function renderSemilleroDetailView(container, semilleroId) {
       <div class="hero-banner">
         <div style="display: flex; align-items: center; gap: 18px;">
           ${semillero.logoUrl
-      ? `<img src="${escapeHtml(semillero.logoUrl)}" alt="${escapeHtml(semillero.sigla)}" style="width: 72px; height: 72px; object-fit: contain; border-radius: var(--radius-md); background: rgba(255, 255, 255, 0.95); padding: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); flex-shrink: 0;" />`
+      ? `<img src="${escapeHtml(resolveFileUrl(semillero.logoUrl))}" alt="${escapeHtml(semillero.sigla)}" style="width: 72px; height: 72px; object-fit: contain; border-radius: var(--radius-md); background: rgba(255, 255, 255, 0.95); padding: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); flex-shrink: 0;" />`
       : ''
     }
           <div>
