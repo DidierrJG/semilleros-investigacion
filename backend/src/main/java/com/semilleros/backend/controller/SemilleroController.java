@@ -65,6 +65,20 @@ public class SemilleroController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping(value = "/{id}/foto", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Subir foto del semillero", description = "Almacena la imagen en disco en el dispositivo y asocia la ruta/URL al semillero")
+    public ResponseEntity<SemilleroResponseDTO> uploadFoto(
+            @PathVariable Long id,
+            @RequestParam("foto") MultipartFile foto) {
+        return ResponseEntity.ok(semilleroService.uploadFoto(id, foto));
+    }
+
+    @DeleteMapping("/{id}/foto")
+    @Operation(summary = "Eliminar foto del semillero", description = "Elimina la foto del semillero del disco y limpia la URL")
+    public ResponseEntity<SemilleroResponseDTO> deleteFoto(@PathVariable Long id) {
+        return ResponseEntity.ok(semilleroService.deleteFoto(id));
+    }
+
     @PostMapping("/{semilleroId}/lineas/{lineaId}")
     @Operation(summary = "Asociar línea a semillero", description = "Asocia una línea de investigación existente a un semillero")
     public ResponseEntity<SemilleroResponseDTO> addLinea(

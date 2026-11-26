@@ -23,6 +23,7 @@ import {
   openCapacitacionFormModal,
   openSemilleroFormModal,
   renderEmptyState,
+  resolveImageUrl,
 } from '../ui/components.js';
 
 export function renderSemilleroDetailView(container, semilleroId) {
@@ -92,7 +93,7 @@ export function renderSemilleroDetailView(container, semilleroId) {
                   </div>
                 </td>
                 <td><code>${escapeHtml(i.codigo)}</code></td>
-                <td>${escapeHtml(i.programa)}</td>
+                <td>${escapeHtml(i.programaNombre || i.programa || '')}</td>
                 <td>
                   ${
                     i.esLider
@@ -279,16 +280,23 @@ export function renderSemilleroDetailView(container, semilleroId) {
   container.innerHTML = `
     <section>
       <div class="hero-banner">
-        <div>
-          <span class="hero-banner__sigla">${escapeHtml(semillero.sigla)}</span>
-          <h1 class="hero-banner__title">${escapeHtml(semillero.nombre)}</h1>
-          <p class="hero-banner__subtitle">
-            ${escapeHtml(semillero.grupoInvestigacion)} · Director: <strong>${escapeHtml(semillero.director?.nombre || 'No asignado')}</strong>
-            ${semillero.director?.correo ? `(${escapeHtml(semillero.director.correo)})` : ''}
-          </p>
+        <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+          ${semillero.fotoUrl ? `
+            <img src="${escapeHtml(resolveImageUrl(semillero.fotoUrl))}" alt="${escapeHtml(semillero.nombre)}" class="semillero-detail-emblem" />
+          ` : ''}
+          <div>
+            <span class="hero-banner__sigla">${escapeHtml(semillero.sigla)}</span>
+            <h1 class="hero-banner__title">${escapeHtml(semillero.nombre)}</h1>
+            <p class="hero-banner__subtitle">
+              ${semillero.grupoInvestigacion?.sigla ? `<strong>${escapeHtml(semillero.grupoInvestigacion.sigla)}</strong> · ${escapeHtml(semillero.grupoInvestigacion.nombre)}` : escapeHtml(semillero.grupoInvestigacion?.nombre || 'Sin grupo')}
+              · Director: <strong>${escapeHtml(semillero.director?.nombre || 'No asignado')}</strong>
+              ${semillero.director?.correo ? `(${escapeHtml(semillero.director.correo)})` : ''}
+            </p>
+          </div>
         </div>
         <div class="hero-banner__actions">
           <a href="#/semilleros" class="btn btn--white-outline btn--sm">← Volver</a>
+          <a href="semillero-publico.html?id=${semillero.id}" target="_blank" rel="noopener" class="btn btn--white-outline btn--sm" title="Abrir página pública del semillero">🌐 Página pública</a>
           <button type="button" class="btn btn--white-outline btn--sm" id="editSemilleroDetailBtn">Editar semillero</button>
           <button type="button" class="btn btn--primary btn--sm" id="addIntegranteDetailBtn">+ Agregar integrante</button>
         </div>
@@ -300,6 +308,16 @@ export function renderSemilleroDetailView(container, semilleroId) {
             <h2 class="panel__title">Identidad y Propósito</h2>
           </div>
           <div class="info-blocks">
+            <div class="info-block">
+              <div class="info-block__label">Grupo de Investigación UFPS</div>
+              <div class="info-block__text">
+                <strong>${escapeHtml(semillero.grupoInvestigacion?.sigla || '')} - ${escapeHtml(semillero.grupoInvestigacion?.nombre || 'No asignado')}</strong>
+                ${semillero.grupoInvestigacion?.codigoMinciencias ? `<br/><span class="text-sm text-muted">Cód. Minciencias: <strong>${escapeHtml(semillero.grupoInvestigacion.codigoMinciencias)}</strong> · Categoría: <strong>${escapeHtml(semillero.grupoInvestigacion.categoria)}</strong></span>` : ''}
+                ${semillero.grupoInvestigacion?.facultad ? `<br/><span class="text-sm text-muted">${escapeHtml(semillero.grupoInvestigacion.facultad)} · Dpto. ${escapeHtml(semillero.grupoInvestigacion.departamento)}</span>` : ''}
+                ${semillero.grupoInvestigacion?.lider ? `<br/><span class="text-sm text-muted">Líder: ${escapeHtml(semillero.grupoInvestigacion.lider)} (${escapeHtml(semillero.grupoInvestigacion.correo)})</span>` : ''}
+                ${semillero.grupoInvestigacion?.sitioWeb ? `<br/><a href="${escapeHtml(semillero.grupoInvestigacion.sitioWeb)}" target="_blank" rel="noopener noreferrer" class="text-sm" style="color: var(--primary-color);">Ver GrupLAC / Sitio Web ↗</a>` : ''}
+              </div>
+            </div>
             <div class="info-block">
               <div class="info-block__label">Misión</div>
               <div class="info-block__text">${escapeHtml(semillero.mision || 'No registrada')}</div>

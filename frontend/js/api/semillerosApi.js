@@ -26,4 +26,13 @@ export const semillerosApi = {
     }
     return res.json();
   },
+  uploadFoto: (id, file) => {
+    const formData = new FormData();
+    formData.append('foto', file);
+    return request(`/semilleros/${id}/foto`, {
+      method: 'POST',
+      body: formData,
+    });
+  },
+  removeFoto: (id) => request(`/semilleros/${id}/foto`, { method: 'DELETE' }),
 };

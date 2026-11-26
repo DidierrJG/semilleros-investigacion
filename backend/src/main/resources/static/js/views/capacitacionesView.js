@@ -23,7 +23,7 @@ export function renderCapacitacionesView(container) {
     const q = filters.query.trim().toLowerCase();
     const matchesQuery =
       !q ||
-      c.nombreCapacitacion.toLowerCase().includes(q) ||
+      (c.nombreCapacitacion || '').toLowerCase().includes(q) ||
       (c.objetivoCapacitacion || '').toLowerCase().includes(q) ||
       (c.semilleroSigla || '').toLowerCase().includes(q) ||
       (c.semilleroNombre || '').toLowerCase().includes(q);
@@ -34,10 +34,20 @@ export function renderCapacitacionesView(container) {
     return matchesQuery && matchesSemillero;
   });
 
-  const totalParticipantes = capacitaciones.reduce((acc, cur) => acc + (cur.cantidadParticipantes || 0), 0);
+  const totalParticipantes = capacitaciones.reduce(
+    (acc, cur) => acc + (cur.cantidadParticipantes || 0),
+    0
+  );
   const promedioCumplimiento = capacitaciones.length
-    ? Math.round(capacitaciones.reduce((acc, cur) => acc + (cur.porcentajeCumplimiento || 0), 0) / capacitaciones.length)
+    ? Math.round(
+        capacitaciones.reduce((acc, cur) => acc + (cur.porcentajeCumplimiento || 0), 0) /
+          capacitaciones.length
+      )
     : 0;
+
+  const semillerosConCapacitacion = new Set(
+    capacitaciones.map((c) => Number(c.semilleroId)).filter(Boolean)
+  ).size;
 
   const semilleroOptions = semilleros
     .map(
@@ -52,10 +62,9 @@ export function renderCapacitacionesView(container) {
         <table class="data-table">
           <thead>
             <tr>
-              <th>Nombre de la Capacitación</th>
+              <th>Capacitación</th>
               <th>Semillero</th>
               <th>Fecha</th>
-              <th>Objetivo</th>
               <th style="width: 140px;">Participantes</th>
               <th style="width: 200px;">% Cumplimiento</th>
               <th style="text-align: right;">Acciones</th>
@@ -67,7 +76,14 @@ export function renderCapacitacionesView(container) {
                 (c) => `
               <tr>
                 <td>
-                  <strong>${escapeHtml(c.nombreCapacitacion)}</strong>
+                  <div>
+                    <strong>${escapeHtml(c.nombreCapacitacion)}</strong>
+                    ${
+                      c.objetivoCapacitacion
+                        ? `<div class="text-sm text-muted" style="margin-top: 4px; max-width: 440px; line-height: 1.4;">${escapeHtml(c.objetivoCapacitacion)}</div>`
+                        : ''
+                    }
+                  </div>
                 </td>
                 <td>
                   <button type="button" class="semillero-link-btn" data-view-semillero="${c.semilleroId}" title="Ver semillero">
@@ -75,12 +91,7 @@ export function renderCapacitacionesView(container) {
                   </button>
                 </td>
                 <td>
-                  <span class="text-sm text-muted">${escapeHtml(c.fecha || '')}</span>
-                </td>
-                <td>
-                  <div style="max-width: 260px; font-size: 0.88rem; color: var(--text-secondary); white-space: normal; line-height: 1.4;">
-                    ${escapeHtml(c.objetivoCapacitacion || '')}
-                  </div>
+                  <span class="text-sm" style="font-weight: 500;">📅 ${escapeHtml(c.fecha || 'Sin fecha')}</span>
                 </td>
                 <td>
                   <span class="badge badge--member">👥 ${c.cantidadParticipantes} pers.</span>
@@ -115,123 +126,124 @@ export function renderCapacitacionesView(container) {
       ${filtered
         .map(
           (c) => `
-        <article class="resource-card">
-          <header class="resource-card__header">
-            <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
-              <button type="button" class="semillero-link-btn" data-view-semillero="${c.semilleroId}" title="Ver semillero">
-                <span>${escapeHtml(c.semilleroSigla || 'SEM')}</span>
-              </button>
-              <span class="text-xs text-muted">📅 ${escapeHtml(c.fecha || '')}</span>
-            </div>
+        <article class="semillero-card">
+          <div class="semillero-card__header">
+            <button type="button" class="sigla-badge" style="border: 0; cursor: pointer;" data-view-semillero="${c.semilleroId}" title="Ver información del semillero">
+              ${escapeHtml(c.semilleroSigla || 'SEM')}
+            </button>
             <span class="badge badge--member">👥 ${c.cantidadParticipantes} asist.</span>
-          </header>
+          </div>
 
-          <h3 class="resource-card__title" style="margin-top: 10px;">${escapeHtml(c.nombreCapacitacion)}</h3>
+          <div>
+            <h2 class="semillero-card__title">${escapeHtml(c.nombreCapacitacion)}</h2>
+            <p class="semillero-card__group">📅 ${escapeHtml(c.fecha || 'Sin fecha')}</p>
+          </div>
 
-          <p class="resource-card__desc" style="margin: 10px 0 14px; font-size: 0.9rem; line-height: 1.5; color: var(--text-secondary);">
-            ${escapeHtml(c.objetivoCapacitacion || '')}
+          <hr class="card-divider" />
+
+          <p class="card__desc" style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.45; margin: 0;">
+            ${escapeHtml(c.objetivoCapacitacion || 'Sin objetivo registrado')}
           </p>
 
-          <div style="margin-bottom: 14px;">
-            <div style="display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 4px;">
-              <span class="text-muted">Cumplimiento</span>
-              <strong style="color: ${c.porcentajeCumplimiento === 100 ? '#16a34a' : 'var(--ufps-red-600)'};">${c.porcentajeCumplimiento}%</strong>
-            </div>
-            <div style="height: 6px; background: var(--border-color); border-radius: 3px; overflow: hidden;">
-              <div style="width: ${Math.min(100, Math.max(0, c.porcentajeCumplimiento))}%; height: 100%; background: ${c.porcentajeCumplimiento === 100 ? '#16a34a' : 'var(--ufps-red-600)'};"></div>
+          <div class="semillero-card__meta">
+            <div class="meta-row" style="flex-direction: column; gap: 6px;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span class="meta-row__label">% Cumplimiento:</span>
+                <strong style="color: ${c.porcentajeCumplimiento === 100 ? '#16a34a' : 'var(--ufps-red-600)'};">
+                  ${c.porcentajeCumplimiento}%
+                </strong>
+              </div>
+              <div style="height: 8px; background: var(--border-color); border-radius: 4px; overflow: hidden;">
+                <div style="width: ${Math.min(100, Math.max(0, c.porcentajeCumplimiento))}%; height: 100%; background: ${c.porcentajeCumplimiento === 100 ? '#16a34a' : 'var(--ufps-red-600)'};"></div>
+              </div>
             </div>
           </div>
 
-          <footer class="resource-card__footer">
+          <div class="semillero-card__footer">
+            <button type="button" class="btn btn--soft-red btn--sm" data-view-semillero="${c.semilleroId}">Ver semillero</button>
             <div class="card-actions">
               <button type="button" class="btn btn--secondary btn--sm" data-edit-capacitacion="${c.id}">Editar</button>
               <button type="button" class="btn btn--danger btn--sm" data-delete-capacitacion="${c.id}">Eliminar</button>
             </div>
-          </footer>
+          </div>
         </article>`
         )
         .join('')}
     </div>
   `;
 
+  const contentHtml = filtered.length
+    ? viewMode === 'table'
+      ? tableHtml
+      : cardsHtml
+    : renderEmptyState(
+        'No se encontraron capacitaciones',
+        capacitaciones.length
+          ? 'Intenta ajustar los filtros de búsqueda para ver más resultados.'
+          : 'Aún no se han registrado capacitaciones en el sistema.',
+        `<button type="button" class="btn btn--primary" id="emptyNewCapacitacionBtn">+ Registrar Primera Capacitación</button>`
+      );
+
   container.innerHTML = `
-    <div class="view-header">
-      <div>
-        <h1 class="view-title">Capacitaciones de Investigación</h1>
-        <p class="view-subtitle">Talleres formativos, cursos y sesiones de capacitación técnica organizadas por los semilleros.</p>
-      </div>
-      <div class="view-actions">
-        <button type="button" class="btn btn--primary" id="newCapacitacionBtn">
-          + Nueva Capacitación
-        </button>
-      </div>
-    </div>
-
-    <!-- Barra de Métricas Rápidas -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 20px;">
-      <div style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px 20px;">
-        <span class="text-xs text-muted" style="text-transform: uppercase; font-weight: 700;">Total Capacitaciones</span>
-        <div style="font-size: 1.6rem; font-weight: 800; color: var(--text-primary); margin-top: 4px;">${capacitaciones.length}</div>
-      </div>
-      <div style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px 20px;">
-        <span class="text-xs text-muted" style="text-transform: uppercase; font-weight: 700;">Participantes Formados</span>
-        <div style="font-size: 1.6rem; font-weight: 800; color: #0284c7; margin-top: 4px;">👥 ${totalParticipantes}</div>
-      </div>
-      <div style="background: var(--surface-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px 20px;">
-        <span class="text-xs text-muted" style="text-transform: uppercase; font-weight: 700;">Promedio Cumplimiento</span>
-        <div style="font-size: 1.6rem; font-weight: 800; color: #16a34a; margin-top: 4px;">${promedioCumplimiento}%</div>
-      </div>
-    </div>
-
-    <div class="filter-bar">
-      <div class="search-input-wrapper">
-        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="11" cy="11" r="8" />
-          <line x1="21" y1="21" x2="16.65" y2="16.65" />
-        </svg>
-        <input
-          type="search"
-          class="form-control"
-          id="searchCapacitaciones"
-          placeholder="Buscar por nombre, objetivo, semillero..."
-          value="${escapeHtml(filters.query)}"
-        />
+    <section>
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Capacitaciones de Investigación</h1>
+          <p class="page-subtitle">Talleres formativos, cursos y sesiones de capacitación técnica organizadas por los semilleros.</p>
+        </div>
+        <div class="page-actions">
+          <button type="button" class="btn btn--primary" id="newCapacitacionBtn">+ Nueva Capacitación</button>
+        </div>
       </div>
 
-      <select class="form-control" id="filterSemillero" style="max-width: 260px;">
-        <option value="">Todos los semilleros</option>
-        ${semilleroOptions}
-      </select>
-
-      ${
-        filters.query || filters.semilleroId
-          ? `<button type="button" class="btn btn--secondary btn--sm" id="clearFiltersBtn">Limpiar filtros</button>`
-          : ''
-      }
-
-      <div style="margin-left: auto; display: flex; gap: 4px; background: var(--surface-card); border: 1px solid var(--border-color); padding: 2px; border-radius: var(--radius-md);">
-        <button type="button" class="btn btn--sm ${viewMode === 'table' ? 'btn--primary' : 'btn--secondary'}" id="toggleTableViewBtn" title="Vista de tabla">
-          Tabla
-        </button>
-        <button type="button" class="btn btn--sm ${viewMode === 'cards' ? 'btn--primary' : 'btn--secondary'}" id="toggleCardsViewBtn" title="Vista de tarjetas">
-          Tarjetas
-        </button>
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <span class="kpi-label">Total Capacitaciones</span>
+          <span class="kpi-value">${capacitaciones.length}</span>
+          <span class="kpi-hint">Sesiones formativas registradas</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Participantes Formados</span>
+          <span class="kpi-value">${totalParticipantes}</span>
+          <span class="kpi-hint">Estudiantes y docentes capacitados</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Promedio Cumplimiento</span>
+          <span class="kpi-value">${promedioCumplimiento}%</span>
+          <span class="kpi-hint">Efectividad de sesiones</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Semilleros Activos</span>
+          <span class="kpi-value">${semillerosConCapacitacion}</span>
+          <span class="kpi-hint">Organizando capacitaciones</span>
+        </div>
       </div>
-    </div>
 
-    ${
-      filtered.length === 0
-        ? renderEmptyState(
-            'No se encontraron capacitaciones',
-            filters.query || filters.semilleroId
-              ? 'Intenta ajustar los filtros de búsqueda para ver más resultados.'
-              : 'Aún no se han registrado capacitaciones en el sistema.',
-            `<button type="button" class="btn btn--primary" id="emptyNewCapacitacionBtn">+ Registrar Primera Capacitación</button>`
-          )
-        : viewMode === 'table'
-        ? tableHtml
-        : cardsHtml
-    }
+      <div class="toolbar">
+        <div class="search-box">
+          <span class="search-box__icon">🔍</span>
+          <input
+            type="search"
+            class="search-box__input"
+            id="searchCapacitaciones"
+            placeholder="Buscar por nombre, objetivo o semillero..."
+            value="${escapeHtml(filters.query)}"
+          />
+        </div>
+
+        <select class="filter-select" id="filterSemillero" aria-label="Filtrar por semillero">
+          <option value="">Todos los semilleros</option>
+          ${semilleroOptions}
+        </select>
+
+        <div class="view-toggle" role="group" aria-label="Modo de visualización">
+          <button type="button" class="view-toggle__btn ${viewMode === 'cards' ? 'is-active' : ''}" data-view-mode="cards">Tarjetas</button>
+          <button type="button" class="view-toggle__btn ${viewMode === 'table' ? 'is-active' : ''}" data-view-mode="table">Tabla</button>
+        </div>
+      </div>
+
+      ${contentHtml}
+    </section>
   `;
 
   // Event Listeners
@@ -239,6 +251,11 @@ export function renderCapacitacionesView(container) {
   searchInput?.addEventListener('input', (e) => {
     filters.query = e.target.value;
     renderCapacitacionesView(container);
+    const nextInput = container.querySelector('#searchCapacitaciones');
+    if (nextInput) {
+      nextInput.focus();
+      nextInput.setSelectionRange(nextInput.value.length, nextInput.value.length);
+    }
   });
 
   const semSelect = container.querySelector('#filterSemillero');
@@ -247,20 +264,14 @@ export function renderCapacitacionesView(container) {
     renderCapacitacionesView(container);
   });
 
-  container.querySelector('#clearFiltersBtn')?.addEventListener('click', () => {
-    filters.query = '';
-    filters.semilleroId = '';
-    renderCapacitacionesView(container);
-  });
-
-  container.querySelector('#toggleTableViewBtn')?.addEventListener('click', () => {
-    viewMode = 'table';
-    renderCapacitacionesView(container);
-  });
-
-  container.querySelector('#toggleCardsViewBtn')?.addEventListener('click', () => {
-    viewMode = 'cards';
-    renderCapacitacionesView(container);
+  container.querySelectorAll('[data-view-mode]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const nextMode = btn.dataset.viewMode;
+      if (nextMode && nextMode !== viewMode) {
+        viewMode = nextMode;
+        renderCapacitacionesView(container);
+      }
+    });
   });
 
   const openNew = () => {
@@ -280,9 +291,13 @@ export function renderCapacitacionesView(container) {
   // Editar capacitación
   container.querySelectorAll('[data-edit-capacitacion]').forEach((btn) => {
     btn.addEventListener('click', () => {
-      const c = capacitaciones.find((item) => Number(item.id) === Number(btn.dataset.editCapacitacion));
+      const c = capacitaciones.find(
+        (item) => Number(item.id) === Number(btn.dataset.editCapacitacion)
+      );
       if (c) {
-        openCapacitacionFormModal({ capacitacion: c }, () => renderCapacitacionesView(container));
+        openCapacitacionFormModal({ capacitacion: c }, () =>
+          renderCapacitacionesView(container)
+        );
       }
     });
   });
@@ -290,7 +305,9 @@ export function renderCapacitacionesView(container) {
   // Eliminar capacitación
   container.querySelectorAll('[data-delete-capacitacion]').forEach((btn) => {
     btn.addEventListener('click', () => {
-      const c = capacitaciones.find((item) => Number(item.id) === Number(btn.dataset.deleteCapacitacion));
+      const c = capacitaciones.find(
+        (item) => Number(item.id) === Number(btn.dataset.deleteCapacitacion)
+      );
       if (!c) return;
 
       confirmDialog({

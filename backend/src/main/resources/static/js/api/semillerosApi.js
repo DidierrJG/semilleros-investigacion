@@ -12,5 +12,14 @@ export const semillerosApi = {
     request(`/semilleros/${semilleroId}/lineas/${lineaId}`, { method: 'POST' }),
   removeLinea: (semilleroId, lineaId) =>
     request(`/semilleros/${semilleroId}/lineas/${lineaId}`, { method: 'DELETE' }),
+  uploadFoto: (id, file) => {
+    const formData = new FormData();
+    formData.append('foto', file);
+    return request(`/semilleros/${id}/foto`, {
+      method: 'POST',
+      body: formData,
+    });
+  },
+  removeFoto: (id) => request(`/semilleros/${id}/foto`, { method: 'DELETE' }),
 };
 

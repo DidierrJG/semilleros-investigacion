@@ -55,6 +55,9 @@ public class Semillero {
     @Column(name = "logo_url", length = 300)
     private String logoUrl;
 
+    @Column(name = "foto_url", length = 500)
+    private String fotoUrl;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "director_id", nullable = false)
     private Director director;

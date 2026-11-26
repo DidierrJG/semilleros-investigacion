@@ -25,6 +25,7 @@ import {
   openCapacitacionFormModal,
   openSemilleroFormModal,
   renderEmptyState,
+  resolveImageUrl,
 } from '../ui/components.js';
 
 export function renderSemilleroDetailView(container, semilleroId) {
@@ -280,11 +281,11 @@ export function renderSemilleroDetailView(container, semilleroId) {
   container.innerHTML = `
     <section>
       <div class="hero-banner">
-        <div style="display: flex; align-items: center; gap: 18px;">
+        <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
           ${semillero.logoUrl
-      ? `<img src="${escapeHtml(resolveFileUrl(semillero.logoUrl))}" alt="${escapeHtml(semillero.sigla)}" style="width: 72px; height: 72px; object-fit: contain; border-radius: var(--radius-md); background: rgba(255, 255, 255, 0.95); padding: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); flex-shrink: 0;" />`
-      : ''
-    }
+            ? `<img src="${escapeHtml(resolveFileUrl(semillero.logoUrl))}" alt="${escapeHtml(semillero.sigla)}" style="width: 72px; height: 72px; object-fit: contain; border-radius: var(--radius-md); background: rgba(255, 255, 255, 0.95); padding: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); flex-shrink: 0;" />`
+            : (semillero.fotoUrl ? `<img src="${escapeHtml(resolveImageUrl(semillero.fotoUrl))}" alt="${escapeHtml(semillero.nombre)}" class="semillero-detail-emblem" />` : '')
+          }
           <div>
             <span class="hero-banner__sigla">${escapeHtml(semillero.sigla)}</span>
             <h1 class="hero-banner__title">${escapeHtml(semillero.nombre)}</h1>
@@ -297,6 +298,7 @@ export function renderSemilleroDetailView(container, semilleroId) {
         </div>
         <div class="hero-banner__actions">
           <a href="#/semilleros" class="btn btn--white-outline btn--sm">← Volver</a>
+          <a href="semillero-publico.html?id=${semillero.id}" target="_blank" rel="noopener" class="btn btn--white-outline btn--sm" title="Abrir página pública del semillero">🌐 Página pública</a>
           <button type="button" class="btn btn--white-outline btn--sm" id="editSemilleroDetailBtn">Editar semillero</button>
           <button type="button" class="btn btn--white-outline btn--sm" id="generarReporteBtn" title="Descargar Informe de Gestión de Semilleros FO-IN-14 en formato PDF">
             📄 Generar reporte FO-IN-14
@@ -391,6 +393,7 @@ export function renderSemilleroDetailView(container, semilleroId) {
     generarReporteBtn.disabled = true;
     generarReporteBtn.innerHTML = '⏳ Generando PDF...';
 
+    // Identificar periodo académico actual (ej. 2024-1, 2025-1)
     const now = new Date();
     const currentPeriod = `${now.getFullYear()}-${now.getMonth() < 6 ? '1' : '2'}`;
 

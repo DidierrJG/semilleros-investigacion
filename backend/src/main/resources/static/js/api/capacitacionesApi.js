@@ -10,3 +10,4 @@ export const capacitacionesApi = {
     request(`/capacitaciones/${id}`, { method: 'PUT', body: JSON.stringify(payload) }),
   remove: (id) => request(`/capacitaciones/${id}`, { method: 'DELETE' }),
 };
+

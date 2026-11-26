@@ -42,6 +42,9 @@ public class SemilleroResponseDTO {
     @Schema(description = "Información del director responsable")
     private DirectorResponseDTO director;
 
+    @Schema(description = "URL o ruta relativa de la foto del semillero", example = "/uploads/semilleros/semillero_1_abc.jpg")
+    private String fotoUrl;
+
     @Schema(description = "Líneas de investigación asociadas al semillero")
     private List<LineaResponseDTO> lineas;
 }

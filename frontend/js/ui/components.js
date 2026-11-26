@@ -6,6 +6,7 @@ import { productosApi } from '../api/productosApi.js';
 import { tiposActividadApi } from '../api/tiposActividadApi.js';
 import { actividadesApi } from '../api/actividadesApi.js';
 import { capacitacionesApi } from '../api/capacitacionesApi.js';
+import { API_BASE_URL } from '../config.js';
 import { openModal, closeModal } from './modal.js';
 import { showToast } from './toast.js';
 export {
@@ -16,6 +17,15 @@ export {
   createViewToggle,
   createProgressBar,
 } from './designModel.js';
+
+export function resolveImageUrl(url) {
+  if (!url) return '';
+  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:') || url.startsWith('blob:')) {
+    return url;
+  }
+  const base = API_BASE_URL.replace(/\/api\/?$/, '');
+  return `${base}${url.startsWith('/') ? '' : '/'}${url}`;
+}
 
 export function escapeHtml(value) {
   if (value === null || value === undefined) return '';
@@ -110,12 +120,15 @@ export function openSemilleroFormModal(semillero = null, onSaved = null) {
           </select>
         </div>
         <div class="form-field form-field--full">
-          <label class="form-label" for="semLogoFile">Logo del semillero (opcional)</label>
+          <label class="form-label" for="semLogoFile">Logo / Emblema del semillero (opcional)</label>
           <div style="display: flex; align-items: center; gap: 16px;">
             <div id="semLogoPreviewContainer" style="width: 64px; height: 64px; border-radius: var(--radius-sm); border: 1px dashed var(--border-strong); display: flex; align-items: center; justify-content: center; overflow: hidden; background: var(--bg-page);">
               ${semillero?.logoUrl
         ? `<img src="${escapeHtml(resolveFileUrl(semillero.logoUrl))}" id="semLogoImgPreview" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.onerror=null; this.parentElement.innerHTML='<span style=\\'font-size: 0.75rem; color: var(--text-muted); text-align: center;\\'>Sin logo</span>';" />`
-        : `<span id="semLogoTextPreview" style="font-size: 0.75rem; color: var(--text-muted); text-align: center;">Sin logo</span>`
+        : (semillero?.fotoUrl
+            ? `<img src="${escapeHtml(resolveImageUrl(semillero.fotoUrl))}" id="semLogoImgPreview" style="width: 100%; height: 100%; object-fit: contain;" />`
+            : `<span id="semLogoTextPreview" style="font-size: 0.75rem; color: var(--text-muted); text-align: center;">Sin logo</span>`
+          )
       }
             </div>
             <div style="flex: 1;">
@@ -123,8 +136,6 @@ export function openSemilleroFormModal(semillero = null, onSaved = null) {
               <div class="text-xs text-muted" style="margin-top: 4px;">Formatos aceptados: PNG, JPG, WEBP, SVG (máx. 10MB)</div>
             </div>
           </div>
-        </div>
-
         <div class="form-field form-field--full">
           <label class="form-label" for="semMision">Misión</label>
           <textarea class="form-control" id="semMision" name="mision" placeholder="Propósito formativo del semillero...">${escapeHtml(semillero?.mision || '')}</textarea>
@@ -532,10 +543,15 @@ export function openSemilleroPreviewModal(semillero, integrante = null) {
         ? `<div style="text-align: center; margin-bottom: 16px;">
               <img src="${escapeHtml(resolveFileUrl(semillero.logoUrl))}" alt="${escapeHtml(semillero.sigla)}" style="max-height: 75px; max-width: 160px; object-fit: contain; border-radius: var(--radius-sm); border: 1px solid var(--border-color); padding: 4px; background: #fff; box-shadow: var(--shadow-xs);" />
             </div>`
-        : ''
+        : (semillero.fotoUrl
+            ? `<div style="text-align: center; margin-bottom: 16px;">
+                 <img src="${escapeHtml(resolveImageUrl(semillero.fotoUrl))}" alt="${escapeHtml(semillero.nombre)}" style="max-height: 160px; max-width: 100%; border-radius: var(--radius-md); object-fit: cover; border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);" />
+               </div>`
+            : '')
       }
-      ${integrante
-        ? `<p class="text-sm text-muted" style="margin-bottom: 12px;">
+      ${
+        integrante
+          ? `<p class="text-sm text-muted" style="margin-bottom: 12px;">
               Integrante consultado: <strong>${escapeHtml(integrante.nombre)}</strong> (${escapeHtml(integrante.codigo)})
             </p>`
         : ''
