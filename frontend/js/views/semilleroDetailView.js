@@ -13,6 +13,7 @@ import { integrantesApi } from '../api/integrantesApi.js';
 import { productosApi } from '../api/productosApi.js';
 import { actividadesApi } from '../api/actividadesApi.js';
 import { capacitacionesApi } from '../api/capacitacionesApi.js';
+import { reportesApi } from '../api/reportesApi.js';
 import { confirmDialog } from '../ui/modal.js';
 import { showToast } from '../ui/toast.js';
 import {
@@ -297,6 +298,9 @@ export function renderSemilleroDetailView(container, semilleroId) {
         <div class="hero-banner__actions">
           <a href="#/semilleros" class="btn btn--white-outline btn--sm">← Volver</a>
           <button type="button" class="btn btn--white-outline btn--sm" id="editSemilleroDetailBtn">Editar semillero</button>
+          <button type="button" class="btn btn--white-outline btn--sm" id="generarReporteBtn" title="Descargar Informe de Gestión de Semilleros FO-IN-14 en formato PDF">
+            📄 Generar reporte FO-IN-14
+          </button>
           <button type="button" class="btn btn--primary btn--sm" id="addIntegranteDetailBtn">+ Agregar integrante</button>
         </div>
       </div>
@@ -378,6 +382,28 @@ export function renderSemilleroDetailView(container, semilleroId) {
   // Editar semillero
   container.querySelector('#editSemilleroDetailBtn')?.addEventListener('click', () => {
     openSemilleroFormModal(semillero, () => renderSemilleroDetailView(container, semillero.id));
+  });
+
+  // Generar y descargar reporte FO-IN-14
+  const generarReporteBtn = container.querySelector('#generarReporteBtn');
+  generarReporteBtn?.addEventListener('click', async () => {
+    const originalText = generarReporteBtn.innerHTML;
+    generarReporteBtn.disabled = true;
+    generarReporteBtn.innerHTML = '⏳ Generando PDF...';
+
+    const now = new Date();
+    const currentPeriod = `${now.getFullYear()}-${now.getMonth() < 6 ? '1' : '2'}`;
+
+    try {
+      showToast('Generando reporte institucional FO-IN-14...', 'info');
+      const filename = await reportesApi.descargarReporteFoIn14(semillero.id, currentPeriod);
+      showToast(`Reporte "${filename}" descargado exitosamente.`, 'success');
+    } catch (err) {
+      showToast(err.message || 'Error al generar el reporte FO-IN-14.', 'error');
+    } finally {
+      generarReporteBtn.disabled = false;
+      generarReporteBtn.innerHTML = originalText;
+    }
   });
 
   // Agregar integrante preseleccionando este semillero
