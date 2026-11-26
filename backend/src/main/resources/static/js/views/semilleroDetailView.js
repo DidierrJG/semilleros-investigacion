@@ -23,6 +23,7 @@ import {
   openCapacitacionFormModal,
   openSemilleroFormModal,
   renderEmptyState,
+  resolveImageUrl,
 } from '../ui/components.js';
 
 export function renderSemilleroDetailView(container, semilleroId) {
@@ -279,14 +280,19 @@ export function renderSemilleroDetailView(container, semilleroId) {
   container.innerHTML = `
     <section>
       <div class="hero-banner">
-        <div>
-          <span class="hero-banner__sigla">${escapeHtml(semillero.sigla)}</span>
-          <h1 class="hero-banner__title">${escapeHtml(semillero.nombre)}</h1>
-          <p class="hero-banner__subtitle">
-            ${semillero.grupoInvestigacion?.sigla ? `<strong>${escapeHtml(semillero.grupoInvestigacion.sigla)}</strong> · ${escapeHtml(semillero.grupoInvestigacion.nombre)}` : escapeHtml(semillero.grupoInvestigacion?.nombre || 'Sin grupo')}
-            · Director: <strong>${escapeHtml(semillero.director?.nombre || 'No asignado')}</strong>
-            ${semillero.director?.correo ? `(${escapeHtml(semillero.director.correo)})` : ''}
-          </p>
+        <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+          ${semillero.fotoUrl ? `
+            <img src="${escapeHtml(resolveImageUrl(semillero.fotoUrl))}" alt="${escapeHtml(semillero.nombre)}" class="semillero-detail-emblem" />
+          ` : ''}
+          <div>
+            <span class="hero-banner__sigla">${escapeHtml(semillero.sigla)}</span>
+            <h1 class="hero-banner__title">${escapeHtml(semillero.nombre)}</h1>
+            <p class="hero-banner__subtitle">
+              ${semillero.grupoInvestigacion?.sigla ? `<strong>${escapeHtml(semillero.grupoInvestigacion.sigla)}</strong> · ${escapeHtml(semillero.grupoInvestigacion.nombre)}` : escapeHtml(semillero.grupoInvestigacion?.nombre || 'Sin grupo')}
+              · Director: <strong>${escapeHtml(semillero.director?.nombre || 'No asignado')}</strong>
+              ${semillero.director?.correo ? `(${escapeHtml(semillero.director.correo)})` : ''}
+            </p>
+          </div>
         </div>
         <div class="hero-banner__actions">
           <a href="#/semilleros" class="btn btn--white-outline btn--sm">← Volver</a>

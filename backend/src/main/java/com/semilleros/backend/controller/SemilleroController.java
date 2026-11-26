@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,7 +17,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -59,6 +62,20 @@ public class SemilleroController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         semilleroService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping(value = "/{id}/foto", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Subir foto del semillero", description = "Almacena la imagen en disco en el dispositivo y asocia la ruta/URL al semillero")
+    public ResponseEntity<SemilleroResponseDTO> uploadFoto(
+            @PathVariable Long id,
+            @RequestParam("foto") MultipartFile foto) {
+        return ResponseEntity.ok(semilleroService.uploadFoto(id, foto));
+    }
+
+    @DeleteMapping("/{id}/foto")
+    @Operation(summary = "Eliminar foto del semillero", description = "Elimina la foto del semillero del disco y limpia la URL")
+    public ResponseEntity<SemilleroResponseDTO> deleteFoto(@PathVariable Long id) {
+        return ResponseEntity.ok(semilleroService.deleteFoto(id));
     }
 
     @PostMapping("/{semilleroId}/lineas/{lineaId}")
