@@ -5,6 +5,7 @@ import { API_BASE_URL } from './config.js';
 
 function updateSidebarStatus(state) {
   const semCount = document.getElementById('navCountSemilleros');
+  const grpCount = document.getElementById('navCountGrupos');
   const intCount = document.getElementById('navCountIntegrantes');
   const prodCount = document.getElementById('navCountProductos');
   const actCount = document.getElementById('navCountActividades');
@@ -12,11 +13,13 @@ function updateSidebarStatus(state) {
   const linCount = document.getElementById('navCountLineas');
   const tipoActCount = document.getElementById('navCountTiposActividad');
   const dirCount = document.getElementById('navCountDirectores');
+  const progCount = document.getElementById('navCountProgramas');
   const dot = document.getElementById('apiStatusDot');
   const text = document.getElementById('apiStatusText');
   const url = document.getElementById('apiStatusUrl');
 
   if (semCount) semCount.textContent = String(state.semilleros.length);
+  if (grpCount) grpCount.textContent = String((state.gruposInvestigacion || []).length);
   if (intCount) intCount.textContent = String(state.integrantes.length);
   if (prodCount) prodCount.textContent = String(state.productos.length);
   if (actCount) actCount.textContent = String(state.actividades.length);
@@ -24,6 +27,7 @@ function updateSidebarStatus(state) {
   if (linCount) linCount.textContent = String(state.lineas.length);
   if (tipoActCount) tipoActCount.textContent = String(state.tiposActividad.length);
   if (dirCount) dirCount.textContent = String(state.directores.length);
+  if (progCount) progCount.textContent = String((state.programas || []).length);
 
   if (url) {
     url.textContent = API_BASE_URL.replace(/^https?:\/\//, '');

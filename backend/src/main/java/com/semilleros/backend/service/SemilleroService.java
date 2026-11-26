@@ -17,6 +17,7 @@ import com.semilleros.backend.repository.SemilleroRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Comparator;
 import java.util.HashSet;
@@ -35,6 +36,7 @@ public class SemilleroService {
     private final DirectorService directorService;
     private final LineaService lineaService;
     private final GrupoInvestigacionService grupoInvestigacionService;
+    private final FotoStorageService fotoStorageService;
 
     @Transactional(readOnly = true)
     public List<SemilleroResponseDTO> findAll() {
@@ -68,6 +70,7 @@ public class SemilleroService {
                 .vision(request.getVision())
                 .objetivoGeneral(request.getObjetivoGeneral())
                 .director(director)
+                .fotoUrl(request.getFotoUrl())
                 .lineas(lineas)
                 .build();
 
@@ -93,6 +96,9 @@ public class SemilleroService {
         semillero.setVision(request.getVision());
         semillero.setObjetivoGeneral(request.getObjetivoGeneral());
         semillero.setDirector(director);
+        if (request.getFotoUrl() != null) {
+            semillero.setFotoUrl(request.getFotoUrl());
+        }
         if (request.getLineaIds() != null) {
             semillero.setLineas(resolveLineas(request.getLineaIds()));
         }
@@ -133,10 +139,39 @@ public class SemilleroService {
         if (capacitacionRepository.existsBySemilleroId(id)) {
             throw new BusinessException("No se puede eliminar el semillero porque tiene capacitaciones asociadas");
         }
+        if (semillero.getFotoUrl() != null) {
+            fotoStorageService.deleteFoto(semillero.getFotoUrl());
+        }
         semillero.getLineas().clear();
         semilleroRepository.delete(semillero);
     }
 
+
+    @Transactional
+    public SemilleroResponseDTO uploadFoto(Long id, MultipartFile file) {
+        Semillero semillero = findEntityById(id);
+        String oldFoto = semillero.getFotoUrl();
+        String newFotoUrl = fotoStorageService.storeSemilleroFoto(id, file);
+        semillero.setFotoUrl(newFotoUrl);
+        Semillero saved = semilleroRepository.save(semillero);
+
+        if (oldFoto != null && !oldFoto.equals(newFotoUrl)) {
+            fotoStorageService.deleteFoto(oldFoto);
+        }
+
+        return toResponseDTO(saved);
+    }
+
+    @Transactional
+    public SemilleroResponseDTO deleteFoto(Long id) {
+        Semillero semillero = findEntityById(id);
+        if (semillero.getFotoUrl() != null) {
+            fotoStorageService.deleteFoto(semillero.getFotoUrl());
+            semillero.setFotoUrl(null);
+            semillero = semilleroRepository.save(semillero);
+        }
+        return toResponseDTO(semillero);
+    }
 
     public Semillero findEntityById(Long id) {
         return semilleroRepository.findById(id)
@@ -168,6 +203,7 @@ public class SemilleroService {
                 .vision(semillero.getVision())
                 .objetivoGeneral(semillero.getObjetivoGeneral())
                 .director(directorService.toResponseDTO(semillero.getDirector()))
+                .fotoUrl(semillero.getFotoUrl())
                 .lineas(lineasDTO)
                 .build();
     }

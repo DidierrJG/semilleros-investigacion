@@ -71,6 +71,9 @@ export function renderDirectoresView(container) {
   const { directores, semilleros } = store;
   const q = searchQuery.trim().toLowerCase();
 
+  const totalDirectores = directores.length;
+  const semillerosAsignados = semilleros.filter((s) => s.director?.id).length;
+
   const filtered = directores.filter(
     (d) =>
       !q ||
@@ -146,6 +149,19 @@ export function renderDirectoresView(container) {
         </div>
         <div class="page-actions">
           <button type="button" class="btn btn--primary" id="newDirectorBtn">+ Nuevo Director</button>
+        </div>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <span class="kpi-label">Total Directores</span>
+          <span class="kpi-value">${totalDirectores}</span>
+          <span class="kpi-hint">Docentes investigadores</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Semilleros Asignados</span>
+          <span class="kpi-value">${semillerosAsignados}</span>
+          <span class="kpi-hint">Semilleros con dirección activa</span>
         </div>
       </div>
 
