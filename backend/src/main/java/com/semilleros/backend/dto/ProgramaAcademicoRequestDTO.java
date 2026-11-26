@@ -19,4 +19,7 @@ public class ProgramaAcademicoRequestDTO {
     @Size(max = 160, message = "El nombre no puede superar los 160 caracteres")
     @Schema(description = "Nombre del programa académico", example = "Ingeniería de Sistemas")
     private String nombre;
+
+    @Schema(description = "ID de la facultad a la que pertenece el programa", example = "1")
+    private Long facultadId;
 }

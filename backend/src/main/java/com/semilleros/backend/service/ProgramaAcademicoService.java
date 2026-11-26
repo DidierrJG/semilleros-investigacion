@@ -2,9 +2,11 @@ package com.semilleros.backend.service;
 
 import com.semilleros.backend.dto.ProgramaAcademicoRequestDTO;
 import com.semilleros.backend.dto.ProgramaAcademicoResponseDTO;
+import com.semilleros.backend.entity.Facultad;
 import com.semilleros.backend.entity.ProgramaAcademico;
 import com.semilleros.backend.exception.BusinessException;
 import com.semilleros.backend.exception.ResourceNotFoundException;
+import com.semilleros.backend.repository.FacultadRepository;
 import com.semilleros.backend.repository.IntegranteRepository;
 import com.semilleros.backend.repository.ProgramaAcademicoRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +21,7 @@ public class ProgramaAcademicoService {
 
     private final ProgramaAcademicoRepository programaRepository;
     private final IntegranteRepository integranteRepository;
+    private final FacultadRepository facultadRepository;
 
     @Transactional(readOnly = true)
     public List<ProgramaAcademicoResponseDTO> findAll() {
@@ -39,8 +42,16 @@ public class ProgramaAcademicoService {
         if (programaRepository.existsByNombreIgnoreCase(nombre)) {
             throw new BusinessException("Ya existe un programa con el nombre: " + nombre);
         }
+
+        Facultad facultad = null;
+        if (request.getFacultadId() != null) {
+            facultad = facultadRepository.findById(request.getFacultadId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Facultad no encontrada con ID: " + request.getFacultadId()));
+        }
+
         ProgramaAcademico programa = ProgramaAcademico.builder()
                 .nombre(nombre)
+                .facultad(facultad)
                 .build();
         return toResponseDTO(programaRepository.save(programa));
     }
@@ -52,7 +63,15 @@ public class ProgramaAcademicoService {
         if (programaRepository.existsByNombreIgnoreCaseAndIdNot(nombre, id)) {
             throw new BusinessException("Ya existe otro programa con el nombre: " + nombre);
         }
+
+        Facultad facultad = null;
+        if (request.getFacultadId() != null) {
+            facultad = facultadRepository.findById(request.getFacultadId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Facultad no encontrada con ID: " + request.getFacultadId()));
+        }
+
         programa.setNombre(nombre);
+        programa.setFacultad(facultad);
         return toResponseDTO(programaRepository.save(programa));
     }
 
@@ -70,10 +89,21 @@ public class ProgramaAcademicoService {
                 .orElseThrow(() -> new ResourceNotFoundException("Programa académico no encontrado con id: " + id));
     }
 
-    private ProgramaAcademicoResponseDTO toResponseDTO(ProgramaAcademico programa) {
+    public ProgramaAcademicoResponseDTO toResponseDTO(ProgramaAcademico programa) {
+        ProgramaAcademicoResponseDTO.FacultadSummaryDTO facultadDTO = null;
+        if (programa.getFacultad() != null) {
+            Facultad f = programa.getFacultad();
+            facultadDTO = ProgramaAcademicoResponseDTO.FacultadSummaryDTO.builder()
+                    .id(f.getId())
+                    .nombre(f.getNombre())
+                    .sigla(f.getSigla())
+                    .build();
+        }
+
         return ProgramaAcademicoResponseDTO.builder()
                 .id(programa.getId())
                 .nombre(programa.getNombre())
+                .facultad(facultadDTO)
                 .build();
     }
 }
