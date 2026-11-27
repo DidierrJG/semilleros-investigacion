@@ -5,12 +5,15 @@ import com.semilleros.backend.dto.EnviarCorreoSemilleroResponseDTO;
 import com.semilleros.backend.dto.SemilleroRequestDTO;
 import com.semilleros.backend.dto.SemilleroResponseDTO;
 import com.semilleros.backend.service.CorreoSemilleroService;
+import com.semilleros.backend.service.SemilleroExcelService;
 import com.semilleros.backend.service.SemilleroService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -34,6 +37,7 @@ import java.util.List;
 public class SemilleroController {
 
     private final SemilleroService semilleroService;
+    private final SemilleroExcelService semilleroExcelService;
     private final CorreoSemilleroService correoSemilleroService;
 
     @GetMapping
@@ -46,6 +50,28 @@ public class SemilleroController {
     @Operation(summary = "Obtener semillero por ID", description = "Retorna un semillero según su identificador")
     public ResponseEntity<SemilleroResponseDTO> findById(@PathVariable Long id) {
         return ResponseEntity.ok(semilleroService.findById(id));
+    }
+
+    @GetMapping("/{id}/exportar-actualizacion")
+    @Operation(summary = "Exportar formato de actualización a Excel", description = "Genera y descarga el formato oficial de actualización de semillero en formato Excel (.xlsx)")
+    public ResponseEntity<byte[]> exportarActualizacion(@PathVariable Long id) {
+        SemilleroResponseDTO semillero = semilleroService.findById(id);
+        byte[] excelBytes = semilleroExcelService.generarFormatoActualizacion(id);
+
+        String baseName = semillero.getSigla() != null && !semillero.getSigla().isBlank()
+                ? semillero.getSigla()
+                : semillero.getNombre();
+        String safeName = baseName.trim().replaceAll("\\s+", "_").replaceAll("[^a-zA-Z0-9_\\-]", "");
+        String filename = "Actualizacion_Semillero_" + safeName + ".xlsx";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(
+                MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+        headers.setContentDisposition(ContentDisposition.attachment().filename(filename).build());
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(excelBytes);
     }
 
     @PostMapping
@@ -121,4 +147,3 @@ public class SemilleroController {
         return ResponseEntity.ok(correoSemilleroService.enviarCorreoAParticipantes(id, request));
     }
 }
-

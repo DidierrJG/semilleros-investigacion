@@ -284,9 +284,9 @@ export function renderSemilleroDetailView(container, semilleroId) {
       <div class="hero-banner">
         <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
           ${semillero.logoUrl
-            ? `<img src="${escapeHtml(resolveFileUrl(semillero.logoUrl))}" alt="${escapeHtml(semillero.sigla)}" style="width: 72px; height: 72px; object-fit: contain; border-radius: var(--radius-md); background: rgba(255, 255, 255, 0.95); padding: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); flex-shrink: 0;" />`
-            : (semillero.fotoUrl ? `<img src="${escapeHtml(resolveImageUrl(semillero.fotoUrl))}" alt="${escapeHtml(semillero.nombre)}" class="semillero-detail-emblem" />` : '')
-          }
+      ? `<img src="${escapeHtml(resolveFileUrl(semillero.logoUrl))}" alt="${escapeHtml(semillero.sigla)}" style="width: 72px; height: 72px; object-fit: contain; border-radius: var(--radius-md); background: rgba(255, 255, 255, 0.95); padding: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); flex-shrink: 0;" />`
+      : (semillero.fotoUrl ? `<img src="${escapeHtml(resolveImageUrl(semillero.fotoUrl))}" alt="${escapeHtml(semillero.nombre)}" class="semillero-detail-emblem" />` : '')
+    }
           <div>
             <span class="hero-banner__sigla">${escapeHtml(semillero.sigla)}</span>
             <h1 class="hero-banner__title">${escapeHtml(semillero.nombre)}</h1>
@@ -299,7 +299,6 @@ export function renderSemilleroDetailView(container, semilleroId) {
         </div>
         <div class="hero-banner__actions">
           <a href="#/semilleros" class="btn btn--white-outline btn--sm">← Volver</a>
-          <a href="semillero-publico.html?id=${semillero.id}" target="_blank" rel="noopener" class="btn btn--white-outline btn--sm" title="Abrir página pública del semillero">🌐 Página pública</a>
           <button type="button" class="btn btn--white-outline btn--sm" id="editSemilleroDetailBtn">Editar semillero</button>
           <button type="button" class="btn btn--white-outline btn--sm" id="generarReporteBtn" title="Descargar Informe de Gestión de Semilleros FO-IN-14 en formato PDF">
             📄 Generar reporte FO-IN-14
@@ -351,12 +350,9 @@ export function renderSemilleroDetailView(container, semilleroId) {
         </div>
 
         <div class="panel panel--span-12" style="padding: 0; overflow: hidden;">
-          <div class="panel__header" style="padding: 18px 20px 14px; margin-bottom: 0; border-bottom: 1px solid var(--border-color);">
+          <div class="panel__header" style="padding: 18px 20px 14px; margin-bottom: 0; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
             <h2 class="panel__title">Integrantes del Semillero (${integrantes.length})</h2>
-            <div style="display: flex; gap: 8px;">
-              <button type="button" class="btn btn--secondary btn--sm" id="enviarCorreoTableBtn" title="Enviar correo a los integrantes de este semillero">✉ Enviar correo</button>
-              <button type="button" class="btn btn--primary btn--sm" id="addIntegranteTableBtn">+ Nuevo integrante</button>
-            </div>
+            <button type="button" class="btn btn--primary btn--sm" id="addIntegranteTableBtn">+ Nuevo integrante</button>
           </div>
           ${integrantesRowsHtml}
         </div>
@@ -387,6 +383,36 @@ export function renderSemilleroDetailView(container, semilleroId) {
       </div>
     </section>
   `;
+
+  // Descargar Formato Actualización (Excel)
+  const handleExportExcel = async (btn) => {
+    const originalText = btn.innerHTML;
+    try {
+      btn.disabled = true;
+      btn.innerHTML = '⏳ Generando Excel...';
+
+      const { blob, filename } = await semillerosApi.exportarActualizacion(semillero.id);
+
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const tempLink = document.createElement('a');
+      tempLink.href = downloadUrl;
+      tempLink.download = filename;
+      document.body.appendChild(tempLink);
+      tempLink.click();
+      tempLink.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+
+      showToast('Formato de actualización descargado con éxito', 'success');
+    } catch (err) {
+      showToast(err.message || 'Error al descargar el archivo Excel', 'error');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = originalText;
+    }
+  };
+
+  container.querySelector('#exportExcelBtn')?.addEventListener('click', (e) => handleExportExcel(e.currentTarget));
+  container.querySelector('#exportExcelTableBtn')?.addEventListener('click', (e) => handleExportExcel(e.currentTarget));
 
   // Editar semillero
   container.querySelector('#editSemilleroDetailBtn')?.addEventListener('click', () => {

@@ -126,9 +126,14 @@ export function renderSemillerosView(container) {
 
               <div class="semillero-card__footer">
                 <span class="text-sm text-muted">${(s.lineas || []).length} línea(s)</span>
-                <a href="#/semilleros/${s.id}" class="btn btn--soft-red btn--sm">
-                  Ver líneas e integrantes →
-                </a>
+                <div style="display: flex; gap: 6px; align-items: center;">
+                  <button type="button" class="btn btn--sm" data-action="export-excel" data-id="${s.id}" style="background: #107c41; color: #ffffff; border: 1px solid #0e6b37; font-weight: 600; padding: 4px 10px;" title="Descargar Formato Actualización (Excel)">
+                    📊 Excel
+                  </button>
+                  <a href="#/semilleros/${s.id}" class="btn btn--soft-red btn--sm">
+                    Ver líneas e integrantes →
+                  </a>
+                </div>
               </div>
             </article>
           `;
@@ -188,6 +193,9 @@ export function renderSemillerosView(container) {
                   </td>
                   <td style="text-align: right;">
                     <div class="card-actions" style="justify-content: flex-end;">
+                      <button type="button" class="btn btn--sm" data-action="export-excel" data-id="${s.id}" style="background: #107c41; color: #ffffff; border: 1px solid #0e6b37; font-weight: 600; padding: 4px 10px;" title="Descargar Formato Actualización (Excel)">
+                        📊 Excel
+                      </button>
                       <a href="#/semilleros/${s.id}" class="btn btn--soft-red btn--sm" title="Ver líneas e integrantes">
                         Ver detalle →
                       </a>
@@ -328,7 +336,34 @@ export function renderSemillerosView(container) {
     });
   });
 
-  // Acciones en tarjetas
+  // Acciones en tarjetas y tabla
+  container.querySelectorAll('[data-action="export-excel"]').forEach((btn) => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const semilleroId = Number(btn.dataset.id);
+      const originalText = btn.innerHTML;
+      try {
+        btn.disabled = true;
+        btn.innerHTML = '⏳ ...';
+        const { blob, filename } = await semillerosApi.exportarActualizacion(semilleroId);
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const tempLink = document.createElement('a');
+        tempLink.href = downloadUrl;
+        tempLink.download = filename;
+        document.body.appendChild(tempLink);
+        tempLink.click();
+        tempLink.remove();
+        window.URL.revokeObjectURL(downloadUrl);
+        showToast('Formato de actualización descargado con éxito', 'success');
+      } catch (err) {
+        showToast(err.message || 'Error al descargar Excel', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+      }
+    });
+  });
+
   container.querySelectorAll('[data-action="open"]').forEach((el) => {
     el.addEventListener('click', () => {
       window.location.hash = `#/semilleros/${el.dataset.id}`;
