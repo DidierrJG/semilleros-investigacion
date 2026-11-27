@@ -1,4 +1,5 @@
 import { store } from '../state/store.js';
+import { personasApi } from '../api/personasApi.js';
 import { escapeHtml, getInitials } from './components.js';
 
 /**
@@ -95,32 +96,39 @@ export function setupPersonaSearchSelect(wrapperElement, options = {}) {
         !q ||
         (p.nombreCompleto || '').toLowerCase().includes(q) ||
         (p.correo || '').toLowerCase().includes(q) ||
-        (p.identificacion || '').toLowerCase().includes(q)
+        (p.identificacion || '').toLowerCase().includes(q) ||
+        (p.nombres || '').toLowerCase().includes(q) ||
+        (p.apellidos || '').toLowerCase().includes(q)
     );
 
-    let html = `
-      <div class="persona-select-item ${!currentId ? 'is-selected' : ''}" data-person-id="">
-        <span class="persona-select-avatar" style="background: #f1f5f9; color: #64748b;">—</span>
-        <div class="persona-select-info">
-          <span class="persona-select-name">${escapeHtml(emptyLabel)}</span>
+    let html = '';
+    // Solo mostrar opción "Sin persona asignada" cuando el buscador está vacío
+    if (!q) {
+      html += `
+        <div class="persona-select-item ${!currentId ? 'is-selected' : ''}" data-person-id="">
+          <span class="persona-select-avatar" style="background: #f1f5f9; color: #64748b;">—</span>
+          <div class="persona-select-info">
+            <span class="persona-select-name">${escapeHtml(emptyLabel)}</span>
+          </div>
         </div>
-      </div>
-    `;
+      `;
+    }
 
     if (filtered.length === 0) {
-      html += `<div class="persona-select-item--empty">No se encontraron personas con "${escapeHtml(query)}"</div>`;
+      html += `<div class="persona-select-item--empty" style="padding: 12px; text-align: center; color: #94a3b8; font-size: 0.85rem;">No se encontraron personas con "${escapeHtml(query)}"</div>`;
     } else {
       html += filtered
         .map((p) => {
           const isSel = Number(p.id) === currentId;
-          const initials = getInitials(p.nombreCompleto || p.nombres + ' ' + p.apellidos);
+          const fullName = p.nombreCompleto || `${p.nombres || ''} ${p.apellidos || ''}`.trim();
+          const initials = getInitials(fullName);
           const deptoText = p.departamento?.nombre ? ` · ${escapeHtml(p.departamento.nombre)}` : '';
           return `
             <div class="persona-select-item ${isSel ? 'is-selected' : ''}" data-person-id="${p.id}">
               <span class="persona-select-avatar">${escapeHtml(initials)}</span>
               <div class="persona-select-info">
-                <span class="persona-select-name">${escapeHtml(p.nombreCompleto)}</span>
-                <span class="persona-select-meta">${escapeHtml(p.correo)}${deptoText}</span>
+                <span class="persona-select-name">${escapeHtml(fullName)}</span>
+                <span class="persona-select-meta">${escapeHtml(p.correo || '')}${deptoText}</span>
               </div>
             </div>
           `;
@@ -145,12 +153,13 @@ export function setupPersonaSearchSelect(wrapperElement, options = {}) {
     const persona = personaId ? (store.personas || []).find((p) => Number(p.id) === Number(personaId)) : null;
 
     if (persona) {
+      const fullName = persona.nombreCompleto || `${persona.nombres || ''} ${persona.apellidos || ''}`.trim();
       contentBox.innerHTML = `
         <div class="persona-select-chip">
-          <span class="persona-select-avatar">${escapeHtml(getInitials(persona.nombreCompleto))}</span>
+          <span class="persona-select-avatar">${escapeHtml(getInitials(fullName))}</span>
           <div class="persona-select-info">
-            <span class="persona-select-name">${escapeHtml(persona.nombreCompleto)}</span>
-            <span class="persona-select-meta">${escapeHtml(persona.correo)}${persona.departamento?.nombre ? ` · ${escapeHtml(persona.departamento.nombre)}` : ''}</span>
+            <span class="persona-select-name">${escapeHtml(fullName)}</span>
+            <span class="persona-select-meta">${escapeHtml(persona.correo || '')}${persona.departamento?.nombre ? ` · ${escapeHtml(persona.departamento.nombre)}` : ''}</span>
           </div>
         </div>
       `;
@@ -173,20 +182,69 @@ export function setupPersonaSearchSelect(wrapperElement, options = {}) {
     }
   };
 
-  const openDropdown = () => {
+  const updateDropdownPlacement = () => {
+    const rect = displayBox.getBoundingClientRect();
+    const modalBody = wrapperElement.closest('.modal__body') || wrapperElement.closest('.modal');
+    let isDropup = false;
+
+    if (modalBody) {
+      const bodyRect = modalBody.getBoundingClientRect();
+      const spaceBelow = bodyRect.bottom - rect.bottom;
+      const spaceAbove = rect.top - bodyRect.top;
+      // Si hacia abajo queda poco espacio (menos de 220px) y hacia arriba hay más espacio
+      if (spaceBelow < 220 && spaceAbove > 140) {
+        isDropup = true;
+      }
+    } else {
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceAbove = rect.top;
+      if (spaceBelow < 250 && spaceAbove > 180) {
+        isDropup = true;
+      }
+    }
+
+    if (isDropup) {
+      dropdown.classList.add('is-dropup');
+    } else {
+      dropdown.classList.remove('is-dropup');
+    }
+    return isDropup;
+  };
+
+  const openDropdown = async () => {
     isOpen = true;
+    wrapperElement.style.zIndex = '50';
+
+    // Si aún no se han cargado las personas en el store, obtenerlas de la API
+    if (!store.personas || store.personas.length === 0) {
+      try {
+        const data = await personasApi.getAll();
+        store.personas = data;
+      } catch (err) {
+        console.warn('No se pudieron obtener personas:', err);
+      }
+    }
+
+    const isDropup = updateDropdownPlacement();
     displayBox.classList.add('is-open');
     dropdown.classList.add('is-open');
     displayBox.setAttribute('aria-expanded', 'true');
     searchInput.value = '';
     renderItems('');
-    setTimeout(() => searchInput.focus(), 50);
+    setTimeout(() => {
+      searchInput.focus();
+      if (!isDropup) {
+        dropdown.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }
+    }, 50);
   };
 
   const closeDropdown = () => {
     isOpen = false;
+    wrapperElement.style.zIndex = '';
     displayBox.classList.remove('is-open');
     dropdown.classList.remove('is-open');
+    dropdown.classList.remove('is-dropup');
     displayBox.setAttribute('aria-expanded', 'false');
   };
 
@@ -201,6 +259,7 @@ export function setupPersonaSearchSelect(wrapperElement, options = {}) {
 
   searchInput.addEventListener('input', (e) => {
     renderItems(e.target.value);
+    updateDropdownPlacement();
   });
 
   // Cerrar al hacer clic fuera del componente

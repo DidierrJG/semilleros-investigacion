@@ -109,7 +109,7 @@ public class CorreoSemilleroService {
                 MimeMessage message = mailSender.createMimeMessage();
                 MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-                helper.setFrom(defaultFrom);
+                helper.setFrom(defaultFrom, "Semilleros UFPS - " + semillero.getSigla());
                 // Usar copia oculta (BCC) para proteger la privacidad entre los correos de los estudiantes
                 helper.setBcc(correos.toArray(new String[0]));
                 helper.setSubject(asuntoFormateado);
