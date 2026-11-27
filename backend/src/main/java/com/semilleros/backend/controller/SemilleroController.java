@@ -4,6 +4,8 @@ import com.semilleros.backend.dto.EnviarCorreoSemilleroRequestDTO;
 import com.semilleros.backend.dto.EnviarCorreoSemilleroResponseDTO;
 import com.semilleros.backend.dto.SemilleroRequestDTO;
 import com.semilleros.backend.dto.SemilleroResponseDTO;
+import com.semilleros.backend.service.CorreoSemilleroService;
+import com.semilleros.backend.service.SemilleroExcelService;
 import com.semilleros.backend.service.SemilleroService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -35,6 +37,8 @@ import java.util.List;
 public class SemilleroController {
 
     private final SemilleroService semilleroService;
+    private final SemilleroExcelService semilleroExcelService;
+    private final CorreoSemilleroService correoSemilleroService;
 
     @GetMapping
     @Operation(summary = "Listar semilleros", description = "Retorna todos los semilleros registrados")

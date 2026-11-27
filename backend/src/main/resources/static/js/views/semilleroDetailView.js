@@ -283,9 +283,10 @@ export function renderSemilleroDetailView(container, semilleroId) {
     <section>
       <div class="hero-banner">
         <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
-          ${semillero.fotoUrl ? `
-            <img src="${escapeHtml(resolveImageUrl(semillero.fotoUrl))}" alt="${escapeHtml(semillero.nombre)}" class="semillero-detail-emblem" />
-          ` : ''}
+          ${semillero.logoUrl
+      ? `<img src="${escapeHtml(resolveFileUrl(semillero.logoUrl))}" alt="${escapeHtml(semillero.sigla)}" style="width: 72px; height: 72px; object-fit: contain; border-radius: var(--radius-md); background: rgba(255, 255, 255, 0.95); padding: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); flex-shrink: 0;" />`
+      : (semillero.fotoUrl ? `<img src="${escapeHtml(resolveImageUrl(semillero.fotoUrl))}" alt="${escapeHtml(semillero.nombre)}" class="semillero-detail-emblem" />` : '')
+    }
           <div>
             <span class="hero-banner__sigla">${escapeHtml(semillero.sigla)}</span>
             <h1 class="hero-banner__title">${escapeHtml(semillero.nombre)}</h1>
@@ -299,6 +300,12 @@ export function renderSemilleroDetailView(container, semilleroId) {
         <div class="hero-banner__actions">
           <a href="#/semilleros" class="btn btn--white-outline btn--sm">← Volver</a>
           <button type="button" class="btn btn--white-outline btn--sm" id="editSemilleroDetailBtn">Editar semillero</button>
+          <button type="button" class="btn btn--white-outline btn--sm" id="generarReporteBtn" title="Descargar Informe de Gestión de Semilleros FO-IN-14 en formato PDF">
+            📄 Generar reporte FO-IN-14
+          </button>
+          <button type="button" class="btn btn--white-outline btn--sm" id="enviarCorreoBannerBtn" title="Enviar correo a los participantes de este semillero">
+            ✉ Enviar correo
+          </button>
           <button type="button" class="btn btn--primary btn--sm" id="addIntegranteDetailBtn">+ Agregar integrante</button>
         </div>
       </div>
@@ -411,6 +418,36 @@ export function renderSemilleroDetailView(container, semilleroId) {
   container.querySelector('#editSemilleroDetailBtn')?.addEventListener('click', () => {
     openSemilleroFormModal(semillero, () => renderSemilleroDetailView(container, semillero.id));
   });
+
+  // Generar y descargar reporte FO-IN-14
+  const generarReporteBtn = container.querySelector('#generarReporteBtn');
+  generarReporteBtn?.addEventListener('click', async () => {
+    const originalText = generarReporteBtn.innerHTML;
+    generarReporteBtn.disabled = true;
+    generarReporteBtn.innerHTML = '⏳ Generando PDF...';
+
+    // Identificar periodo académico actual (ej. 2024-1, 2025-1)
+    const now = new Date();
+    const currentPeriod = `${now.getFullYear()}-${now.getMonth() < 6 ? '1' : '2'}`;
+
+    try {
+      showToast('Generando reporte institucional FO-IN-14...', 'info');
+      const filename = await reportesApi.descargarReporteFoIn14(semillero.id, currentPeriod);
+      showToast(`Reporte "${filename}" descargado exitosamente.`, 'success');
+    } catch (err) {
+      showToast(err.message || 'Error al generar el reporte FO-IN-14.', 'error');
+    } finally {
+      generarReporteBtn.disabled = false;
+      generarReporteBtn.innerHTML = originalText;
+    }
+  });
+
+  // Enviar correo a los participantes del semillero
+  const handleOpenEnviarCorreo = () => {
+    openEnviarCorreoModal(semillero, integrantes);
+  };
+  container.querySelector('#enviarCorreoBannerBtn')?.addEventListener('click', handleOpenEnviarCorreo);
+  container.querySelector('#enviarCorreoTableBtn')?.addEventListener('click', handleOpenEnviarCorreo);
 
   // Agregar integrante preseleccionando este semillero
   const openAddIntegrante = () => {
