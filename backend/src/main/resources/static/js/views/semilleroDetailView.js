@@ -24,6 +24,7 @@ import {
   openActividadFormModal,
   openCapacitacionFormModal,
   openSemilleroFormModal,
+  openEnviarCorreoModal,
   renderEmptyState,
   resolveImageUrl,
 } from '../ui/components.js';
@@ -282,10 +283,9 @@ export function renderSemilleroDetailView(container, semilleroId) {
     <section>
       <div class="hero-banner">
         <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
-          ${semillero.logoUrl
-      ? `<img src="${escapeHtml(resolveFileUrl(semillero.logoUrl))}" alt="${escapeHtml(semillero.sigla)}" style="width: 72px; height: 72px; object-fit: contain; border-radius: var(--radius-md); background: rgba(255, 255, 255, 0.95); padding: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); flex-shrink: 0;" />`
-      : (semillero.fotoUrl ? `<img src="${escapeHtml(resolveImageUrl(semillero.fotoUrl))}" alt="${escapeHtml(semillero.nombre)}" class="semillero-detail-emblem" />` : '')
-    }
+          ${semillero.fotoUrl ? `
+            <img src="${escapeHtml(resolveImageUrl(semillero.fotoUrl))}" alt="${escapeHtml(semillero.nombre)}" class="semillero-detail-emblem" />
+          ` : ''}
           <div>
             <span class="hero-banner__sigla">${escapeHtml(semillero.sigla)}</span>
             <h1 class="hero-banner__title">${escapeHtml(semillero.nombre)}</h1>
@@ -299,9 +299,6 @@ export function renderSemilleroDetailView(container, semilleroId) {
         <div class="hero-banner__actions">
           <a href="#/semilleros" class="btn btn--white-outline btn--sm">← Volver</a>
           <button type="button" class="btn btn--white-outline btn--sm" id="editSemilleroDetailBtn">Editar semillero</button>
-          <button type="button" class="btn btn--white-outline btn--sm" id="generarReporteBtn" title="Descargar Informe de Gestión de Semilleros FO-IN-14 en formato PDF">
-            📄 Generar reporte FO-IN-14
-          </button>
           <button type="button" class="btn btn--primary btn--sm" id="addIntegranteDetailBtn">+ Agregar integrante</button>
         </div>
       </div>
@@ -348,12 +345,7 @@ export function renderSemilleroDetailView(container, semilleroId) {
         <div class="panel panel--span-12" style="padding: 0; overflow: hidden;">
           <div class="panel__header" style="padding: 18px 20px 14px; margin-bottom: 0; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
             <h2 class="panel__title">Integrantes del Semillero (${integrantes.length})</h2>
-            <div style="display: flex; gap: 8px;">
-              <button type="button" class="btn btn--sm" id="exportExcelTableBtn" style="background: #107c41; color: #ffffff; border: 1px solid #0e6b37; font-weight: 600;">
-                📊 Descargar Formato Excel
-              </button>
-              <button type="button" class="btn btn--primary btn--sm" id="addIntegranteTableBtn">+ Nuevo integrante</button>
-            </div>
+            <button type="button" class="btn btn--primary btn--sm" id="addIntegranteTableBtn">+ Nuevo integrante</button>
           </div>
           ${integrantesRowsHtml}
         </div>
@@ -418,29 +410,6 @@ export function renderSemilleroDetailView(container, semilleroId) {
   // Editar semillero
   container.querySelector('#editSemilleroDetailBtn')?.addEventListener('click', () => {
     openSemilleroFormModal(semillero, () => renderSemilleroDetailView(container, semillero.id));
-  });
-
-  // Generar y descargar reporte FO-IN-14
-  const generarReporteBtn = container.querySelector('#generarReporteBtn');
-  generarReporteBtn?.addEventListener('click', async () => {
-    const originalText = generarReporteBtn.innerHTML;
-    generarReporteBtn.disabled = true;
-    generarReporteBtn.innerHTML = '⏳ Generando PDF...';
-
-    // Identificar periodo académico actual (ej. 2024-1, 2025-1)
-    const now = new Date();
-    const currentPeriod = `${now.getFullYear()}-${now.getMonth() < 6 ? '1' : '2'}`;
-
-    try {
-      showToast('Generando reporte institucional FO-IN-14...', 'info');
-      const filename = await reportesApi.descargarReporteFoIn14(semillero.id, currentPeriod);
-      showToast(`Reporte "${filename}" descargado exitosamente.`, 'success');
-    } catch (err) {
-      showToast(err.message || 'Error al generar el reporte FO-IN-14.', 'error');
-    } finally {
-      generarReporteBtn.disabled = false;
-      generarReporteBtn.innerHTML = originalText;
-    }
   });
 
   // Agregar integrante preseleccionando este semillero
