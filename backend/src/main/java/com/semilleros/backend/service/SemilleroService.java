@@ -14,9 +14,16 @@ import com.semilleros.backend.repository.CapacitacionRepository;
 import com.semilleros.backend.repository.IntegranteRepository;
 import com.semilleros.backend.repository.ProductoRepository;
 import com.semilleros.backend.repository.SemilleroRepository;
+import com.semilleros.backend.storage.FileCategory;
+import com.semilleros.backend.storage.FileStorageService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Comparator;
 import java.util.HashSet;
@@ -35,6 +42,8 @@ public class SemilleroService {
     private final DirectorService directorService;
     private final LineaService lineaService;
     private final GrupoInvestigacionService grupoInvestigacionService;
+    private final FileStorageService fileStorageService;
+    private final FotoStorageService fotoStorageService;
 
     @Transactional(readOnly = true)
     public List<SemilleroResponseDTO> findAll() {
@@ -67,7 +76,10 @@ public class SemilleroService {
                 .mision(request.getMision())
                 .vision(request.getVision())
                 .objetivoGeneral(request.getObjetivoGeneral())
+                .logoUrl(request.getLogoUrl() != null && !request.getLogoUrl().isBlank() ? request.getLogoUrl().trim()
+                        : null)
                 .director(director)
+                .fotoUrl(request.getFotoUrl())
                 .lineas(lineas)
                 .build();
 
@@ -92,7 +104,13 @@ public class SemilleroService {
         semillero.setMision(request.getMision());
         semillero.setVision(request.getVision());
         semillero.setObjetivoGeneral(request.getObjetivoGeneral());
+        if (request.getLogoUrl() != null) {
+            semillero.setLogoUrl(request.getLogoUrl().trim());
+        }
         semillero.setDirector(director);
+        if (request.getFotoUrl() != null) {
+            semillero.setFotoUrl(request.getFotoUrl());
+        }
         if (request.getLineaIds() != null) {
             semillero.setLineas(resolveLineas(request.getLineaIds()));
         }
@@ -133,11 +151,38 @@ public class SemilleroService {
         if (capacitacionRepository.existsBySemilleroId(id)) {
             throw new BusinessException("No se puede eliminar el semillero porque tiene capacitaciones asociadas");
         }
+        if (semillero.getFotoUrl() != null) {
+            fotoStorageService.deleteFoto(semillero.getFotoUrl());
+        }
         semillero.getLineas().clear();
         semilleroRepository.delete(semillero);
     }
 
+    @Transactional
+    public SemilleroResponseDTO uploadFoto(Long id, MultipartFile file) {
+        Semillero semillero = findEntityById(id);
+        String oldFoto = semillero.getFotoUrl();
+        String newFotoUrl = fotoStorageService.storeSemilleroFoto(id, file);
+        semillero.setFotoUrl(newFotoUrl);
+        Semillero saved = semilleroRepository.save(semillero);
 
+        if (oldFoto != null && !oldFoto.equals(newFotoUrl)) {
+            fotoStorageService.deleteFoto(oldFoto);
+        }
+
+        return toResponseDTO(saved);
+    }
+
+    @Transactional
+    public SemilleroResponseDTO deleteFoto(Long id) {
+        Semillero semillero = findEntityById(id);
+        if (semillero.getFotoUrl() != null) {
+            fotoStorageService.deleteFoto(semillero.getFotoUrl());
+            semillero.setFotoUrl(null);
+            semillero = semilleroRepository.save(semillero);
+        }
+        return toResponseDTO(semillero);
+    }
     public Semillero findEntityById(Long id) {
         return semilleroRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Semillero no encontrado con id: " + id));
@@ -167,8 +212,47 @@ public class SemilleroService {
                 .mision(semillero.getMision())
                 .vision(semillero.getVision())
                 .objetivoGeneral(semillero.getObjetivoGeneral())
+                .logoUrl(semillero.getLogoUrl())
                 .director(directorService.toResponseDTO(semillero.getDirector()))
+                .fotoUrl(semillero.getFotoUrl())
                 .lineas(lineasDTO)
                 .build();
+    }
+
+    @Transactional
+    public SemilleroResponseDTO uploadLogo(Long id, MultipartFile file) {
+        Semillero semillero = findEntityById(id);
+
+        // Si ya tenía un logo previo, eliminar el archivo físico
+        if (semillero.getLogoUrl() != null && semillero.getLogoUrl().contains("/logos/")) {
+            String oldFilename = semillero.getLogoUrl().substring(semillero.getLogoUrl().lastIndexOf('/') + 1);
+            fileStorageService.deleteFile(FileCategory.LOGOS, oldFilename);
+        }
+
+        String savedFilename = fileStorageService.storeFile(FileCategory.LOGOS, file, "semillero-" + id);
+        String logoUrl = "/api/archivos/logos/" + savedFilename;
+        semillero.setLogoUrl(logoUrl);
+
+        return toResponseDTO(semilleroRepository.save(semillero));
+    }
+
+    @Transactional(readOnly = true)
+    public ResponseEntity<Resource> getLogo(Long id) {
+        Semillero semillero = findEntityById(id);
+        String logoUrl = semillero.getLogoUrl();
+
+        if (logoUrl == null || logoUrl.isBlank()) {
+            throw new ResourceNotFoundException(
+                    "El semillero " + semillero.getSigla() + " no tiene un logo configurado");
+        }
+
+        String filename = logoUrl.substring(logoUrl.lastIndexOf('/') + 1);
+        Resource resource = fileStorageService.loadFileAsResource(FileCategory.LOGOS, filename);
+        String contentType = fileStorageService.determineContentType(filename, resource);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(contentType))
+                .header(HttpHeaders.CACHE_CONTROL, "public, max-age=86400")
+                .body(resource);
     }
 }

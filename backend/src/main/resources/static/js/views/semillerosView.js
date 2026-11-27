@@ -6,6 +6,7 @@ import {
   escapeHtml,
   openSemilleroFormModal,
   renderEmptyState,
+  resolveImageUrl,
 } from '../ui/components.js';
 
 let filters = {
@@ -77,6 +78,11 @@ export function renderSemillerosView(container) {
 
           return `
             <article class="semillero-card" data-semillero-id="${s.id}">
+              ${s.fotoUrl ? `
+                <div class="semillero-card__banner" data-action="open" data-id="${s.id}" title="Ver semillero">
+                  <img src="${escapeHtml(resolveImageUrl(s.fotoUrl))}" alt="${escapeHtml(s.nombre)}" class="semillero-card__banner-img" loading="lazy" onerror="this.parentElement.style.display='none'" />
+                </div>
+              ` : ''}
               <div class="semillero-card__header">
                 <div>
                   <span class="sigla-badge">${escapeHtml(s.sigla)}</span>
@@ -154,8 +160,13 @@ export function renderSemillerosView(container) {
                 return `
                 <tr>
                   <td>
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                      <span class="sigla-badge">${escapeHtml(s.sigla)}</span>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                      ${s.fotoUrl ? `
+                        <img src="${escapeHtml(resolveImageUrl(s.fotoUrl))}" alt="${escapeHtml(s.sigla)}" class="semillero-table-thumb" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';" />
+                        <span class="sigla-badge" style="display: none;">${escapeHtml(s.sigla)}</span>
+                      ` : `
+                        <span class="sigla-badge">${escapeHtml(s.sigla)}</span>
+                      `}
                       <div>
                         <strong style="cursor: pointer;" data-action="open" data-id="${s.id}">
                           ${escapeHtml(s.nombre)}

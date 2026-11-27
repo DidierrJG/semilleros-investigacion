@@ -14,6 +14,7 @@ import com.semilleros.backend.repository.ActividadRepository;
 import com.semilleros.backend.repository.IntegranteRepository;
 import com.semilleros.backend.repository.ProductoRepository;
 import com.semilleros.backend.repository.SemilleroRepository;
+import com.semilleros.backend.storage.FileStorageService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -24,9 +25,13 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import org.springframework.web.multipart.MultipartFile;
 
 @ExtendWith(MockitoExtension.class)
 class SemilleroServiceTest {
@@ -52,6 +57,12 @@ class SemilleroServiceTest {
     @Mock
     private GrupoInvestigacionService grupoInvestigacionService;
 
+    @Mock
+    private FileStorageService fileStorageService;
+
+    @Mock
+    private FotoStorageService fotoStorageService;
+
     @InjectMocks
     private SemilleroService semilleroService;
 
@@ -71,7 +82,8 @@ class SemilleroServiceTest {
         Director director = Director.builder().id(1L).nombre("Ana").correo("ana@uni.edu").build();
         DirectorResponseDTO directorDTO = new DirectorResponseDTO(1L, "Ana", "ana@uni.edu");
         GrupoInvestigacion grupo = GrupoInvestigacion.builder().id(2L).nombre("GSI").sigla("GSI").build();
-        GrupoInvestigacionResponseDTO grupoDTO = GrupoInvestigacionResponseDTO.builder().id(2L).nombre("GSI").sigla("GSI").build();
+        GrupoInvestigacionResponseDTO grupoDTO = GrupoInvestigacionResponseDTO.builder().id(2L).nombre("GSI")
+                .sigla("GSI").build();
         Linea linea = Linea.builder().id(5L).nombre("Machine Learning").build();
         LineaResponseDTO lineaDTO = new LineaResponseDTO(5L, "Machine Learning");
 
@@ -127,5 +139,43 @@ class SemilleroServiceTest {
         when(integranteRepository.existsBySemilleroId(10L)).thenReturn(true);
 
         assertThrows(BusinessException.class, () -> semilleroService.delete(10L));
+    }
+
+    @Test
+    void uploadFoto_shouldStoreFileAndUpdateFotoUrl() {
+        Semillero semillero = Semillero.builder()
+                .id(10L)
+                .nombre("Semillero IA")
+                .sigla("SIA")
+                .fotoUrl("/uploads/semilleros/old.jpg")
+                .build();
+        MultipartFile file = mock(MultipartFile.class);
+
+        when(semilleroRepository.findById(10L)).thenReturn(Optional.of(semillero));
+        when(fotoStorageService.storeSemilleroFoto(10L, file)).thenReturn("/uploads/semilleros/new.jpg");
+        when(semilleroRepository.save(any(Semillero.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        SemilleroResponseDTO response = semilleroService.uploadFoto(10L, file);
+
+        assertEquals("/uploads/semilleros/new.jpg", response.getFotoUrl());
+        verify(fotoStorageService).deleteFoto("/uploads/semilleros/old.jpg");
+    }
+
+    @Test
+    void deleteFoto_shouldRemoveFileAndClearFotoUrl() {
+        Semillero semillero = Semillero.builder()
+                .id(10L)
+                .nombre("Semillero IA")
+                .sigla("SIA")
+                .fotoUrl("/uploads/semilleros/foto.jpg")
+                .build();
+
+        when(semilleroRepository.findById(10L)).thenReturn(Optional.of(semillero));
+        when(semilleroRepository.save(any(Semillero.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        SemilleroResponseDTO response = semilleroService.deleteFoto(10L);
+
+        assertNull(response.getFotoUrl());
+        verify(fotoStorageService).deleteFoto("/uploads/semilleros/foto.jpg");
     }
 }

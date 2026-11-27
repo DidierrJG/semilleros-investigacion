@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Información pública del semillero de investigación - Universidad Francisco de Paula Santander" />
+  <title>Semillero de Investigación · UFPS</title>
+  <link rel="stylesheet" href="css/tokens.css" />
+  <link rel="stylesheet" href="css/publico.css" />
+</head>
+<body>
+
+  <!-- ══ HEADER INSTITUCIONAL ══════════════════════════════════════════════ -->
+  <header class="pub-header">
+    <div class="pub-header__inner">
+      <div class="pub-header__brand">
+        <div class="pub-header__logo-box" aria-hidden="true">
+          <span class="pub-header__logo-initials">UFPS</span>
+        </div>
+        <div>
+          <div class="pub-header__uni">Universidad Francisco de Paula Santander</div>
+          <div class="pub-header__sub">Vicerrectoría de Investigación · Semilleros</div>
+        </div>
+      </div>
+      <a href="index.html" class="pub-header__back-link" id="backToSystemBtn">
+        ← Ir al sistema
+      </a>
+    </div>
+  </header>
+
+  <!-- ══ HERO DEL SEMILLERO ════════════════════════════════════════════════ -->
+  <section class="pub-hero" id="heroSection">
+    <div class="pub-container">
+      <div class="pub-hero__content">
+        <div class="pub-hero__sigla-badge" id="heroSigla">—</div>
+        <h1 class="pub-hero__title" id="heroNombre">Cargando semillero…</h1>
+        <p class="pub-hero__meta" id="heroMeta"></p>
+        <div class="pub-hero__tags" id="heroLineas"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ CONTENIDO PRINCIPAL ═══════════════════════════════════════════════ -->
+  <main class="pub-container pub-main" id="mainContent">
+
+    <!-- Estado de error / carga -->
+    <div id="loadingState" class="pub-loading">
+      <div class="pub-spinner" aria-label="Cargando…"></div>
+      <p>Cargando información del semillero…</p>
+    </div>
+    <div id="errorState" class="pub-error-state" hidden>
+      <div class="pub-error-state__icon" aria-hidden="true">⚠️</div>
+      <h2 id="errorTitle">Semillero no encontrado</h2>
+      <p id="errorMessage">El semillero que estás buscando no existe o no está disponible en este momento.</p>
+      <a href="semillero-publico.html" class="pub-btn pub-btn--primary">Ver todos los semilleros</a>
+    </div>
+
+    <!-- Directorio público (cuando no hay ?id= en la URL) -->
+    <div id="directoryData" hidden>
+      <div class="pub-section-title" style="margin-top: 0;">
+        Semilleros de Investigación UFPS
+        <span class="pub-count-badge" id="directoryCount">0</span>
+      </div>
+      <div class="pub-directory-grid" id="directoryGrid"></div>
+    </div>
+
+    <!-- Contenido real (oculto hasta que cargue) -->
+    <div id="semilleroData" hidden>
+
+      <!-- Propósito e identidad -->
+      <div class="pub-section-title">Identidad y Propósito</div>
+      <div class="pub-identity-grid">
+        <div class="pub-card">
+          <div class="pub-card__label">🎯 Misión</div>
+          <p class="pub-card__text" id="mision">—</p>
+        </div>
+        <div class="pub-card">
+          <div class="pub-card__label">🔭 Visión</div>
+          <p class="pub-card__text" id="vision">—</p>
+        </div>
+        <div class="pub-card pub-card--full">
+          <div class="pub-card__label">📌 Objetivo General</div>
+          <p class="pub-card__text" id="objetivoGeneral">—</p>
+        </div>
+      </div>
+
+      <!-- Grupo de investigación -->
+      <div class="pub-section-title">Grupo de Investigación</div>
+      <div class="pub-grupo-card" id="grupoCard">
+        <div class="pub-grupo-card__badge" id="grupoSigla">—</div>
+        <div class="pub-grupo-card__info">
+          <div class="pub-grupo-card__nombre" id="grupoNombre">—</div>
+          <div class="pub-grupo-card__meta" id="grupoMeta"></div>
+        </div>
+        <a id="grupoLink" class="pub-btn pub-btn--outline pub-btn--sm" target="_blank" rel="noopener" hidden>
+          Ver GrupLAC ↗
+        </a>
+      </div>
+
+      <!-- Director -->
+      <div class="pub-section-title">Director Responsable</div>
+      <div class="pub-director-card">
+        <div class="pub-director-card__avatar" id="directorAvatar" aria-hidden="true">D</div>
+        <div>
+          <div class="pub-director-card__nombre" id="directorNombre">—</div>
+          <a class="pub-director-card__correo" id="directorCorreo" href="#">—</a>
+        </div>
+      </div>
+
+      <!-- Integrantes -->
+      <div class="pub-section-title">
+        Integrantes del Semillero
+        <span class="pub-count-badge" id="integrantesCount">0</span>
+      </div>
+      <div class="pub-integrantes-grid" id="integrantesGrid">
+        <!-- se genera con JS -->
+      </div>
+
+      <!-- Productos -->
+      <div class="pub-section-title" id="productosSection">
+        Productos de Investigación
+        <span class="pub-count-badge" id="productosCount">0</span>
+      </div>
+      <div id="productosContainer">
+        <!-- se genera con JS -->
+      </div>
+
+      <!-- Capacitaciones -->
+      <div class="pub-section-title" id="capacitacionesSection">
+        Capacitaciones Realizadas
+        <span class="pub-count-badge" id="capacitacionesCount">0</span>
+      </div>
+      <div id="capacitacionesContainer">
+        <!-- se genera con JS -->
+      </div>
+
+    </div><!-- /semilleroData -->
+  </main>
+
+  <!-- ══ FOOTER ════════════════════════════════════════════════════════════ -->
+  <footer class="pub-footer">
+    <div class="pub-container">
+      <p>© <span id="footerYear"></span> Universidad Francisco de Paula Santander · Vicerrectoría de Investigación</p>
+      <p class="pub-footer__sub">Sistema de Semilleros de Investigación UFPS · Cúcuta, Norte de Santander, Colombia</p>
+    </div>
+  </footer>
+
+  <script type="module" src="js/semillero-publico.js"></script>
+</body>
+</html>
