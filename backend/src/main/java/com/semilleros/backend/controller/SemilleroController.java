@@ -3,12 +3,14 @@ package com.semilleros.backend.controller;
 import com.semilleros.backend.dto.SemilleroRequestDTO;
 import com.semilleros.backend.dto.SemilleroResponseDTO;
 import com.semilleros.backend.service.SemilleroExcelService;
-import com.semilleros.backend.service.SemilleroPdfReportService;
 import com.semilleros.backend.service.SemilleroService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +25,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @RestController

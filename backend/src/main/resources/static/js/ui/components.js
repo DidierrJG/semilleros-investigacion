@@ -1,4 +1,5 @@
 import { store, loadAllData, getIntegrantesBySemillero } from '../state/store.js';
+import { resolveFileUrl } from '../config.js';
 import { semillerosApi } from '../api/semillerosApi.js';
 import { integrantesApi } from '../api/integrantesApi.js';
 import { productosApi } from '../api/productosApi.js';
@@ -8,6 +9,23 @@ import { capacitacionesApi } from '../api/capacitacionesApi.js';
 import { API_BASE_URL } from '../config.js';
 import { openModal, closeModal } from './modal.js';
 import { showToast } from './toast.js';
+export {
+  createPageHeader,
+  createKpiCard,
+  createKpiGrid,
+  createToolbar,
+  createViewToggle,
+  createProgressBar,
+} from './designModel.js';
+
+export function resolveImageUrl(url) {
+  if (!url) return '';
+  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:') || url.startsWith('blob:')) {
+    return url;
+  }
+  const base = API_BASE_URL.replace(/\/api\/?$/, '');
+  return `${base}${url.startsWith('/') ? '' : '/'}${url}`;
+}
 
 export function escapeHtml(value) {
   if (value === null || value === undefined) return '';
@@ -102,30 +120,22 @@ export function openSemilleroFormModal(semillero = null, onSaved = null) {
           </select>
         </div>
         <div class="form-field form-field--full">
-          <label class="form-label">Foto / Emblema del Semillero</label>
-          <div class="foto-upload-container">
-            <div class="foto-upload-preview" id="semFotoPreviewBox">
-              ${semillero?.fotoUrl
-        ? `<img src="${escapeHtml(resolveImageUrl(semillero.fotoUrl))}" id="semFotoImg" alt="Foto semillero" style="width: 100%; height: 100%; object-fit: cover; border-radius: var(--radius-sm);" />`
-        : `<span id="semFotoPlaceholder" class="sigla-badge" style="font-size: 0.9rem;">${escapeHtml(semillero?.sigla || 'FOTO')}</span>`
+          <label class="form-label" for="semLogoFile">Logo / Emblema del semillero (opcional)</label>
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <div id="semLogoPreviewContainer" style="width: 64px; height: 64px; border-radius: var(--radius-sm); border: 1px dashed var(--border-strong); display: flex; align-items: center; justify-content: center; overflow: hidden; background: var(--bg-page);">
+              ${semillero?.logoUrl
+        ? `<img src="${escapeHtml(resolveFileUrl(semillero.logoUrl))}" id="semLogoImgPreview" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.onerror=null; this.parentElement.innerHTML='<span style=\\'font-size: 0.75rem; color: var(--text-muted); text-align: center;\\'>Sin logo</span>';" />`
+        : (semillero?.fotoUrl
+            ? `<img src="${escapeHtml(resolveImageUrl(semillero.fotoUrl))}" id="semLogoImgPreview" style="width: 100%; height: 100%; object-fit: contain;" />`
+            : `<span id="semLogoTextPreview" style="font-size: 0.75rem; color: var(--text-muted); text-align: center;">Sin logo</span>`
+          )
       }
             </div>
-            <div style="flex: 1; display: flex; flex-direction: column; gap: 6px;">
-              <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                <input type="file" id="semFotoInput" accept="image/png,image/jpeg,image/webp,image/gif" style="display: none;" />
-                <button type="button" class="btn btn--secondary btn--sm" id="semFotoSelectBtn">
-                  📁 Seleccionar foto
-                </button>
-                <button type="button" class="btn btn--danger btn--sm" id="semFotoRemoveBtn" style="${semillero?.fotoUrl ? '' : 'display: none;'}">
-                  ✕ Quitar foto
-                </button>
-              </div>
-              <span class="text-xs text-muted" id="semFotoFileName">
-                ${semillero?.fotoUrl ? 'Foto actual asignada en disco' : 'Opcional. Formatos: JPG, PNG, WEBP, GIF (máx. 5MB).'}
-              </span>
+            <div style="flex: 1;">
+              <input class="form-control" type="file" id="semLogoFile" name="logoFile" accept="image/png, image/jpeg, image/webp, image/svg+xml" />
+              <div class="text-xs text-muted" style="margin-top: 4px;">Formatos aceptados: PNG, JPG, WEBP, SVG (máx. 10MB)</div>
             </div>
           </div>
-        </div>
         <div class="form-field form-field--full">
           <label class="form-label" for="semMision">Misión</label>
           <textarea class="form-control" id="semMision" name="mision" placeholder="Propósito formativo del semillero...">${escapeHtml(semillero?.mision || '')}</textarea>
@@ -155,41 +165,18 @@ export function openSemilleroFormModal(semillero = null, onSaved = null) {
       const form = backdrop.querySelector('#semilleroForm');
       const errorBox = backdrop.querySelector('#semFormError');
       const saveBtn = backdrop.querySelector('#saveSemilleroBtn');
-      const fileInput = backdrop.querySelector('#semFotoInput');
-      const selectBtn = backdrop.querySelector('#semFotoSelectBtn');
-      const removeBtn = backdrop.querySelector('#semFotoRemoveBtn');
-      const previewBox = backdrop.querySelector('#semFotoPreviewBox');
-      const fileNameSpan = backdrop.querySelector('#semFotoFileName');
+      const fileInput = backdrop.querySelector('#semLogoFile');
+      const previewContainer = backdrop.querySelector('#semLogoPreviewContainer');
 
-      let selectedFile = null;
-      let removeRequested = false;
-
-      selectBtn?.addEventListener('click', () => fileInput?.click());
-
-      fileInput?.addEventListener('change', (e) => {
-        const file = e.target.files?.[0];
+      fileInput?.addEventListener('change', () => {
+        const file = fileInput.files?.[0];
         if (file) {
-          if (file.size > 5 * 1024 * 1024) {
-            showToast('El archivo de imagen no puede superar los 5 MB', 'error');
-            fileInput.value = '';
-            return;
-          }
-          selectedFile = file;
-          removeRequested = false;
-          if (removeBtn) removeBtn.style.display = 'inline-flex';
-          if (fileNameSpan) fileNameSpan.textContent = file.name;
-          const objectUrl = URL.createObjectURL(file);
-          previewBox.innerHTML = `<img src="${objectUrl}" alt="Previsualización" style="width: 100%; height: 100%; object-fit: cover; border-radius: var(--radius-sm);" />`;
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            previewContainer.innerHTML = `<img src="${ev.target.result}" style="width: 100%; height: 100%; object-fit: contain;" />`;
+          };
+          reader.readAsDataURL(file);
         }
-      });
-
-      removeBtn?.addEventListener('click', () => {
-        selectedFile = null;
-        removeRequested = true;
-        if (fileInput) fileInput.value = '';
-        if (removeBtn) removeBtn.style.display = 'none';
-        if (fileNameSpan) fileNameSpan.textContent = 'Foto eliminada (se guardará al enviar)';
-        previewBox.innerHTML = `<span class="sigla-badge" style="font-size: 0.9rem;">SIN FOTO</span>`;
       });
 
       form.addEventListener('submit', async (e) => {
@@ -220,11 +207,10 @@ export function openSemilleroFormModal(semillero = null, onSaved = null) {
             savedSemillero = await semillerosApi.create(payload);
           }
 
-          const targetId = savedSemillero?.id || semillero?.id;
-          if (selectedFile && targetId) {
-            await semillerosApi.uploadFoto(targetId, selectedFile);
-          } else if (removeRequested && targetId && isEdit && semillero?.fotoUrl) {
-            await semillerosApi.removeFoto(targetId);
+          const file = fileInput?.files?.[0];
+          if (file) {
+            saveBtn.textContent = 'Subiendo logo...';
+            await semillerosApi.uploadLogo(savedSemillero.id, file);
           }
 
           showToast(isEdit ? 'Semillero actualizado correctamente' : 'Semillero creado correctamente', 'success');
@@ -553,13 +539,19 @@ export function openSemilleroPreviewModal(semillero, integrante = null) {
   openModal({
     title: `Semillero ${semillero.sigla}`,
     bodyHtml: `
-      ${semillero.fotoUrl
+      ${semillero.logoUrl
         ? `<div style="text-align: center; margin-bottom: 16px;">
-             <img src="${escapeHtml(resolveImageUrl(semillero.fotoUrl))}" alt="${escapeHtml(semillero.nombre)}" style="max-height: 160px; max-width: 100%; border-radius: var(--radius-md); object-fit: cover; border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);" />
-           </div>`
-        : ''}
-      ${integrante
-        ? `<p class="text-sm text-muted" style="margin-bottom: 12px;">
+              <img src="${escapeHtml(resolveFileUrl(semillero.logoUrl))}" alt="${escapeHtml(semillero.sigla)}" style="max-height: 75px; max-width: 160px; object-fit: contain; border-radius: var(--radius-sm); border: 1px solid var(--border-color); padding: 4px; background: #fff; box-shadow: var(--shadow-xs);" />
+            </div>`
+        : (semillero.fotoUrl
+            ? `<div style="text-align: center; margin-bottom: 16px;">
+                 <img src="${escapeHtml(resolveImageUrl(semillero.fotoUrl))}" alt="${escapeHtml(semillero.nombre)}" style="max-height: 160px; max-width: 100%; border-radius: var(--radius-md); object-fit: cover; border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);" />
+               </div>`
+            : '')
+      }
+      ${
+        integrante
+          ? `<p class="text-sm text-muted" style="margin-bottom: 12px;">
               Integrante consultado: <strong>${escapeHtml(integrante.nombre)}</strong> (${escapeHtml(integrante.codigo)})
             </p>`
         : ''
